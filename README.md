@@ -14,22 +14,16 @@ Meta-Harness demonstrated that **the environment around an LLM matters as much a
 | **harness-engineer** | Failure diagnosis + harness evolution | `skills/harness-engineer/` |
 | **init-harness** | Project harness bootstrap command | `commands/init-harness.md` |
 
-## What This Is (and Isn't)
+## Core Principles
 
-### From the paper (experimentally validated)
+All principles come directly from Meta-Harness experiments and ablation studies:
 
-These principles come directly from Meta-Harness experiments and ablation studies:
-
-- **Raw traces over summaries** — The paper's ablation proved this decisively: full trace access achieved 56.7% accuracy vs 38.7% with summaries (Table 3). Agents diagnose failures by reading raw execution logs via `grep` and `cat`, not by ingesting compressed summaries.
-- **Additive modification** — In the TerminalBench-2 search (Appendix A.2), 6 consecutive iterations regressed when modifying control flow or prompts. Iteration 7 won by *adding information* (environment bootstrap) without touching existing logic. Adding is safer than restructuring.
+- **Raw traces over summaries** — Full trace access achieved 56.7% accuracy vs 38.7% with summaries (Table 3). Agents diagnose failures by reading raw execution logs via `grep` and `cat`, not by ingesting compressed summaries. Trace files use YAML frontmatter for programmatic querying — `grep -l 'verdict: regressed' traces/evolution/` instantly filters regression cases.
+- **Additive modification** — 6 consecutive iterations regressed when modifying control flow or prompts (Appendix A.2). Iteration 7 won by *adding information* (environment bootstrap) without touching existing logic. Adding is safer than restructuring.
 - **Code-space search** — Agents explore by modifying code and configuration files, not by rewriting natural language prompts. "Try harder" is noise; a 3-line config change is search.
-- **Minimal outer loop** — The paper's search loop is deliberately simple: propose → evaluate → log → repeat. Complex orchestration increases outer loop cost without proportional benefit.
-- **Skill document quality as highest leverage** — Appendix D: "iterating on the skill text had a larger effect on search quality than changing iteration count or population size." Define goals and prohibitions; leave diagnosis free.
-- **Confounding variable isolation** — The proposer identified that prompt changes were confounded with structural fixes (Appendix A.2, iteration 3), leading to misattributed regressions. One change at a time.
-
-### Implementation details
-
-Trace files use YAML frontmatter for programmatic querying — e.g., `grep -l 'verdict: regressed' traces/evolution/` instantly filters regression cases. This is a natural extension of the paper's filesystem-based trace access pattern.
+- **Minimal outer loop** — The search loop is deliberately simple: propose → evaluate → log → repeat. Complex orchestration increases outer loop cost without proportional benefit.
+- **Skill document quality as highest leverage** — "Iterating on the skill text had a larger effect on search quality than changing iteration count or population size" (Appendix D). Define goals and prohibitions; leave diagnosis free.
+- **Confounding variable isolation** — Prompt changes were confounded with structural fixes (Appendix A.2, iteration 3), leading to misattributed regressions. One change at a time.
 
 ## Installation
 
@@ -212,8 +206,6 @@ This aligns with the transfer principle: linter/CI-enforceable rules → tooling
 Core principles are derived from:
 - [Meta-Harness: End-to-End Optimization of Model Harnesses](https://arxiv.org/abs/2603.28052) (Lee et al., 2026)
 - [Effective Harnesses for Long-Running Agents](https://anthropic.com/engineering/effective-harnesses-for-long-running-agents) (Anthropic, 2025)
-
-Implementation details (e.g., YAML frontmatter for trace querying) are engineering decisions applying these principles to Claude Code's filesystem.
 
 ## License
 
