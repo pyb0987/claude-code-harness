@@ -5,7 +5,7 @@ description: Analyze project and generate a Meta-Harness (traces + CLAUDE.md + h
 # /init-harness
 
 Analyze a project and configure its Meta-Harness.
-Core 4 elements: Traces, Additive Modification, Evaluator Separation, Skill Document quality.
+Core elements: Traces, Additive Modification, Fixed Evaluator, Skill Document quality.
 
 ## Workflow
 
@@ -21,7 +21,6 @@ Scan the project directly with an Explore agent:
 - Existing CLAUDE.md, .claude/ directory, linters/formatters, CI/CD
 - Test framework, build commands
 - Existing hooks, skills, documents
-- **Apply global learned patterns**: scan `~/.claude/skills/learned/` for existing cross-project patterns; if found, include as references in CLAUDE.md (P9 Transfer reverse direction)
 
 Determine components based on analysis results per Section 3 Decision criteria.
 
@@ -222,7 +221,6 @@ All items below must pass for init-harness to be complete:
 - [ ] Hooks registered in `settings.local.json`
 - [ ] `.claude/agents/` directory was NOT created
 - [ ] (if skill created in Step 6) `.claude/skills/{name}/SKILL.md` exists + Anti-patterns section included + domain rules migrated from CLAUDE.md
-- [ ] (if learned/ exists) existing patterns from `~/.claude/skills/learned/` referenced in CLAUDE.md
 - [ ] No duplicates between global rules (~/.claude/rules/common/) and CLAUDE.md
 
 ## Important
@@ -230,7 +228,7 @@ All items below must pass for init-harness to be complete:
 - Start with minimal viable harness — incrementally strengthen via feedback loop
 - Include only "agent will fail without this", not "nice to have"
 - **Do NOT create agent teams/orchestrators/agent definition files (.claude/agents/)** — Meta-Harness focuses on single-agent environment optimization. Subagents (evaluator, explore, etc.) are allowed for context isolation — this is single-agent tool usage, not multi-persona collaboration
-- Achieve full coverage via hooks + Sprint Contract done conditions. Avoid over-installing hooks
+- Achieve full coverage via hooks + explicit done conditions. Avoid over-installing hooks
 
 ## Hook Configuration Example (settings.local.json)
 

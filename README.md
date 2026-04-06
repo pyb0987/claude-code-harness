@@ -12,7 +12,6 @@ Meta-Harness demonstrated that **the environment around an LLM matters as much a
 | **Reference** | Detailed trace formats, analysis workflows | `docs/reference.md` |
 | **autoresearch** | Autonomous experiment loop (Karpathy pattern) | `skills/autoresearch/` |
 | **harness-engineer** | Failure diagnosis + harness evolution | `skills/harness-engineer/` |
-| **multi-review** | Multi-perspective validation protocol | `skills/multi-review/` |
 | **init-harness** | Project harness bootstrap command | `commands/init-harness.md` |
 
 ## What This Is (and Isn't)
@@ -28,16 +27,9 @@ These principles come directly from Meta-Harness experiments and ablation studie
 - **Skill document quality as highest leverage** — Appendix D: "iterating on the skill text had a larger effect on search quality than changing iteration count or population size." Define goals and prohibitions; leave diagnosis free.
 - **Confounding variable isolation** — The proposer identified that prompt changes were confounded with structural fixes (Appendix A.2, iteration 3), leading to misattributed regressions. One change at a time.
 
-### Original design (built on paper principles)
+### Implementation details
 
-These are my own engineering decisions, applying the paper's insights to Claude Code's specific capabilities. They are *not* from the paper and have not been experimentally validated at the paper's scale:
-
-- **Evaluator Separation** — Tier 0 (fixed evaluator for autoresearch) + multi-review for high-stakes decisions. The paper uses only automated evaluation; multi-review covers tasks where automated metrics don't exist.
-- **Sprint Contract** — `Done when: [condition] / Evaluator: [Tier]` defined before work starts. Forces explicit completion criteria and evaluation method selection.
-- **Trace-based diagnosis with YAML frontmatter** — Structured trace files with machine-queryable frontmatter: `grep -l 'verdict: regressed' traces/evolution/` filters only regressed changes. Raw traces over summaries, extended with programmatic querying.
-- **Knowledge escalation** — When CLAUDE.md grows too large, split to docs/. For recurring expertise, create dedicated skills. Cross-project patterns promote to `~/.claude/skills/learned/`.
-- **Context efficiency** — Successes silent, failures loud. Subagents as context firewalls.
-- **Multi-review protocol** — 2-4 independent critic subagents with explicit scope separation, parallel execution, convergence check, and synthesis. For high-stakes decisions where single-perspective evaluation is insufficient.
+Trace files use YAML frontmatter for programmatic querying — e.g., `grep -l 'verdict: regressed' traces/evolution/` instantly filters regression cases. This is a natural extension of the paper's filesystem-based trace access pattern.
 
 ## Installation
 
@@ -47,7 +39,7 @@ Copy methodology and reference docs to your Claude Code global config:
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/claude-code-harness.git
+git clone https://github.com/pyb0987/claude-code-harness.git
 cd claude-code-harness
 
 # Copy core docs (loaded every session)
@@ -58,7 +50,7 @@ cp docs/methodology.md ~/.claude/rules/common/harness-methodology.md
 mkdir -p ~/.claude/docs
 cp docs/reference.md ~/.claude/docs/harness-reference.md
 
-# Copy skills
+# Copy skills (autoresearch + harness-engineer)
 cp -r skills/* ~/.claude/skills/
 
 # Copy commands
@@ -75,8 +67,7 @@ After installation, your `~/.claude/` should include:
 │   └── harness-reference.md      # Detailed reference (on-demand)
 ├── skills/
 │   ├── autoresearch/SKILL.md
-│   ├── harness-engineer/SKILL.md
-│   └── multi-review/SKILL.md
+│   └── harness-engineer/SKILL.md
 └── commands/
     └── init-harness.md
 ```
@@ -136,17 +127,6 @@ claude "/init-harness"
    hypothesis → implement → evaluate → ADOPT or REJECT → repeat
 3. Results logged to experiments.jsonl + episode traces
 4. After 100 experiments or 20 consecutive rejects → escalate
-```
-
-### High-stakes decision flow
-
-```
-1. /multi-review
-2. Problem framed → 2-4 Critics designed with separated scopes
-3. Critics execute in parallel (independent subagents)
-4. Results converge → PASS / VETO / MIXED
-5. If MIXED: synthesis identifies conflicts + unified recommendation
-6. Human makes final decision
 ```
 
 ## Example: Trace-Based Diagnosis
@@ -217,7 +197,7 @@ This aligns with the transfer principle: linter/CI-enforceable rules → tooling
 
 ## Design Decisions
 
-**Why not `.claude/agents/`?** Meta-Harness focuses on single-agent environment optimization. Subagents are used as tools (Tier 2 evaluator, Explore for codebase scanning) for context isolation, not as collaborating personas.
+**Why not `.claude/agents/`?** Meta-Harness focuses on single-agent environment optimization. Subagents are used as tools (evaluator, Explore for codebase scanning) for context isolation, not as collaborating personas.
 
 **Why YAML frontmatter in traces?** Enables programmatic querying: `grep -l 'verdict: regressed'` instantly filters regression cases across hundreds of traces. This mirrors the paper's filesystem-based access pattern.
 
@@ -233,7 +213,7 @@ Core principles are derived from:
 - [Meta-Harness: End-to-End Optimization of Model Harnesses](https://arxiv.org/abs/2603.28052) (Lee et al., 2026)
 - [Effective Harnesses for Long-Running Agents](https://anthropic.com/engineering/effective-harnesses-for-long-running-agents) (Anthropic, 2025)
 
-The evaluator separation, multi-review protocol, and other original designs in this framework are my own engineering decisions built on these foundations. They have not been experimentally validated at the paper's scale.
+Implementation details (e.g., YAML frontmatter for trace querying) are engineering decisions applying these principles to Claude Code's filesystem.
 
 ## License
 

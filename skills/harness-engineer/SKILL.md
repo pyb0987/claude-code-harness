@@ -94,8 +94,3 @@ Review is possible even without active failures:
 - When 5+ traces/evolution/ have accumulated for pattern analysis
 - **30+ days with no change**: if the latest traces/evolution/ date exceeds 30 days, recommend a harness review. This prevents silent degradation
 
-### Transfer (Cross-Project Promotion)
-- When the same failure pattern appears **3+ times** in `traces/failures/`, consider promotion to `~/.claude/skills/learned/`
-- On promotion: integrate Prevention from those failures into a learned skill document
-- Replace corresponding constraints in project CLAUDE.md with learned skill reference (remove duplicates)
-- **Post-promotion search-set update**: if Active cases correspond to promoted patterns, move them to Archived (record learned skill path in resolution). Simultaneously add new verify items to Active testing the learned skill's effectiveness, maintaining loop continuity

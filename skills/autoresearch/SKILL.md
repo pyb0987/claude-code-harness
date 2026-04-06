@@ -166,7 +166,7 @@ The loop the agent executes when program.md already exists.
 
 #### Termination Conditions
 - `n >= MAX_EXPERIMENTS` (default: 100)
-- `consecutive_rejects >= 20` → record as blocked in handoff.md + **escalate**: record in traces/failures/ with diagnosis of the structural cause, then escalate to harness-engineer or /multi-review. No simple retries — structural cause diagnosis required
+- `consecutive_rejects >= 20` → record as blocked in handoff.md + **escalate**: record in traces/failures/ with diagnosis of the structural cause, then escalate to harness-engineer. No simple retries — structural cause diagnosis required
 - Context window exhausted → record as in_progress in handoff.md (not recorded in failures/ — exhaustion is a budget/session limit, not a harness diagnosis target)
 - ERROR verdict → revert + try different approach (not stop)
 
@@ -208,7 +208,7 @@ Next session reads handoff.md + latest episode traces to maintain continuity.
 
 When structural problems with evaluate.py itself are suspected (gradient dead zone, guard malfunction, metric distortion, etc.):
 1. Record in `traces/failures/NNN-{name}.md` (include symptoms + supporting data)
-2. Escalate to harness-engineer or /multi-review
+2. Escalate to harness-engineer for diagnosis
 3. evaluate.py is immutable, so **the agent does not modify it directly** — redesign after user confirmation
 
 Suspicion signals: all experiments fail on the same guard, metric improves but verdict is REJECT, consecutive REJECTs with sufficient remaining hypothesis space.
@@ -223,9 +223,9 @@ These are human-agent collaboration areas that are not automated:
 - **Next research axis selection**: Setting new program.md direction
 - **evaluate.py redesign**: Reviewing the validity of evaluation criteria themselves
 
-When these judgments are needed, escalate to /multi-review or human intervention.
+When these judgments are needed, escalate to human intervention.
 
 ## Evaluator Integration
 
-This skill's evaluate.py is the fixed evaluator (Tier 0) from docs/methodology.md — the fastest and cheapest evaluation method.
-For high-stakes qualitative decisions, escalate to /multi-review.
+This skill's evaluate.py is the fixed evaluator from docs/methodology.md — the fastest and cheapest evaluation method.
+For high-stakes qualitative decisions, escalate to human review.

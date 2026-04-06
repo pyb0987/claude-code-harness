@@ -196,17 +196,7 @@ Determine components based on analysis results. Do not include everything.
 - Codebase overviews, directory listings
 - Exceeding 100 lines (split to docs/ if exceeded)
 
-## 5. Knowledge Escalation
-
-When CLAUDE.md grows too large, split detailed content to docs/. For recurring domain expertise, create a skill in `.claude/skills/{name}/SKILL.md`.
-
-**Domain skill creation procedure:**
-1. Detect need → get user confirmation
-2. Extract domain knowledge from existing CLAUDE.md + docs/ + code + traces/
-3. Create at `project-root/.claude/skills/{name}/SKILL.md`
-4. Migrate related domain rules from CLAUDE.md (remove duplicates)
-
-## 6. Search-Set — Regression Verification
+## 5. Search-Set — Regression Verification
 
 ### Format (`traces/search-set.md`)
 ```markdown

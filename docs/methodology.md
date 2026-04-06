@@ -44,7 +44,7 @@ Key finding from Meta-Harness experiments:
 2. **Subtractive second**: Removing unnecessary elements comes second
 3. **Structural last**: Modifying existing control flow/logic is the last resort
 4. **Isolate changes**: One change at a time. Bundling changes introduces confounding variables
-   - **Exception — health batch fixes**: Non-functional fixes (dead references, state inconsistencies, missing docs) found via multi-review/audit can be batched. Conditions: (1) each change is independent (no confounders), (2) changes don't alter agent behavior (infrastructure only), (3) individual changes listed in evolution trace. Functional changes must be separated.
+   - **Exception — health batch fixes**: Non-functional fixes (dead references, state inconsistencies, missing docs) found via audit can be batched. Conditions: (1) each change is independent (no confounders), (2) changes don't alter agent behavior (infrastructure only), (3) individual changes listed in evolution trace. Functional changes must be separated.
 5. **Diagnose regressions**: When regression occurs, isolate which part of the change caused it → record in traces
 
 ### Confounding Variable Identification Pattern
@@ -53,22 +53,10 @@ Key finding from Meta-Harness experiments:
 - → Common factor B is the primary cause
 - **When this pattern is recognized**: separate the changes and evaluate each independently
 
-## Context Efficiency — The Context Battlefield
-
-Agent performance degrades as context fills up (Context Rot).
-
-### Successes Silent, Failures Loud
-- On success: summary only. On failure: detailed output
-- Offload large tool outputs to files; reference only when needed
-
-### Subagents = Context Firewalls
-- The value of subagents is not role division but **context isolation**
-- They absorb intermediate noise from research/exploration/implementation, passing only results upstream
-
 ## Minimal Outer Loop & Code-Space Search — Design Principles
 
 ### P3: The outer loop must be simple enough to verify by inspection
-- Harness control flow (Sprint Contract, hook chain, evaluator path) must be immediately understandable
+- Harness control flow (hook chain, evaluator path, done conditions) must be immediately understandable
 - Complex conditional branching, multi-stage orchestration, agent-to-agent protocols increase outer loop cost
 - **Self-check**: "Can I explain this harness's entire flow in 5 minutes?" → No means simplify
 - **Autoresearch application**: program.md → genome modification → evaluate.py → ADOPT/REJECT is the entire loop. Don't make it more complex
@@ -89,20 +77,13 @@ Agent performance degrades as context fills up (Context Rot).
 5. **Verify with search-set**: confirm past failures in `.claude/traces/search-set.md` don't recur
 6. Add new failure to search-set if it has verification value
 
-### Sprint Contract
-```
-Done when: [specific, verifiable completion condition]
-Evaluator: [Tier 0 (fixed evaluator) | multi-review (high-stakes)]
-```
+### Completion Criteria
+Before starting work, define: `Done when: [specific, verifiable condition]`
 
-### Evaluator Separation
-
-**Tier 0 — Fixed Evaluator (quantitative R&D / autoresearch)**:
+### Fixed Evaluator (for autoresearch)
 - Evaluator: Python script, **immutable**, JSON stdout
 - Verdict: binary (ADOPT/REJECT), REJECT → auto revert
-- Escalation: 20 consecutive REJECTs → multi-review
-
-**For high-stakes qualitative decisions**: use /multi-review (parallel independent critics).
+- Escalation: 20 consecutive REJECTs → manual review
 
 ### Hooks vs Backpressure
 - **Hooks**: enforced externally (type checks, formatters)
@@ -123,6 +104,4 @@ Evaluator: [Tier 0 (fixed evaluator) | multi-review (high-stakes)]
 - Debug skill documents with 3-5 short test iterations before production runs
 - After enough iterations, **accumulated traces shape behavior more strongly than the skill document itself**
 
-### Knowledge Escalation
-When CLAUDE.md grows too large, split detailed content to docs/. For recurring domain expertise, consider a dedicated skill in `.claude/skills/`.
 
