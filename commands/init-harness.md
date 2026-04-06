@@ -1,0 +1,268 @@
+---
+description: Analyze project and generate a Meta-Harness (traces + CLAUDE.md + hooks + domain skills)
+---
+
+# /init-harness
+
+Analyze a project and configure its Meta-Harness.
+Core 4 elements: Traces, Additive Modification, Evaluator Separation, Skill Document quality.
+
+## Workflow
+
+### Step 1: Load Methodology
+
+Read docs/reference.md (Section 1 Analysis through Section 3 Generation).
+Core principles are in docs/methodology.md (auto-loaded every session).
+
+### Step 2: Analyze Project
+
+Scan the project directly with an Explore agent:
+- Type, tech stack, directory structure, architecture patterns
+- Existing CLAUDE.md, .claude/ directory, linters/formatters, CI/CD
+- Test framework, build commands
+- Existing hooks, skills, documents
+- **Apply global learned patterns**: scan `~/.claude/skills/learned/` for existing cross-project patterns; if found, include as references in CLAUDE.md (P9 Transfer reverse direction)
+
+Determine components based on analysis results per Section 3 Decision criteria.
+
+### Step 3: Initialize Trace Filesystem
+
+Create `.claude/traces/` directory and empty search-set template:
+```
+mkdir -p .claude/traces/{evolution,failures,experiments}
+```
+
+```markdown
+# traces/search-set.md
+---
+description: "Collection of failure cases for verifying harness changes. After changes, confirm these cases don't recur."
+last_updated: "YYYY-MM-DD"
+---
+# Harness Search Set
+After harness changes, verify effectiveness using active cases in this list.
+Update last_updated when adding/removing items.
+
+## Active
+### SS-001: {first failure scenario identified from project analysis}
+- **Symptom**: {risk found in Step 2 analysis — e.g., deploying without tests, ignoring type errors}
+- **verify**: `{auto-executable verification command}`
+- **ref**: (linked to traces/failures/ when recorded later)
+## Archived
+(Resolved cases with low regression risk)
+```
+
+**Seed entry creation rule**: write the most frequent or critical failure scenario from Step 2 analysis as SS-001. The verify field must be an auto-executable shell command. Examples by project type:
+- TypeScript: `tsc --noEmit 2>&1 | tail -5; echo "EXIT: $?"`
+- Python: `pytest -x -q 2>&1 | tail -5; echo "EXIT: $?"`
+- Godot: `godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/ -glog=1 -gexit 2>&1 | tail -10`
+
+#### Autoresearch Projects: Raw Output Preservation
+
+evaluate.py's JSON stdout is critical diagnostic material. Preserve originals, not summaries:
+- `experiments.jsonl`: record each experiment's full JSON output as 1 line (machine parseable)
+- `traces/experiments/NNN-*.md`: include representative experiments' raw output in episode traces
+- Preserve: verdict, score, gates, metrics in full — no selective field omission
+
+**failures/ file format note**: When harness-engineer records failures, YAML frontmatter must include `classification:` field ("information gap" | "constraint gap" | "tooling gap"). This field is used as a key for Non-Markovian diagnosis (same-type search) and Transfer (cross-project promotion). Format details: see reference.md Section 1.
+
+**Evolution log is written in Step 7** (recorded after all components are confirmed).
+
+### Step 4: Write/Enhance CLAUDE.md
+
+Write or enhance project CLAUDE.md:
+
+1. **If existing CLAUDE.md**: merge, don't overwrite. If existing file exceeds 100 lines, split excess to docs/ and replace with reference links to compress under 100 lines
+2. **Stay within 100 lines** — split to docs/ if exceeded
+3. Exclude rules already enforced by linters (record intent only)
+4. Check for duplicates/conflicts with global rules (~/.claude/rules/common/)
+5. **Harness section required**:
+   - Hook list + each hook's enforcement level (blocking/warning)
+   - traces/ structure
+   - **Change strategy**: Additive first -> Subtractive -> Structural (one at a time, confounding variable isolation)
+   - Protected files (if applicable)
+
+#### Additional Requirements for Autoresearch Projects
+
+For projects using the Fixed Evaluator pattern, CLAUDE.md must specify:
+
+- **Evaluator output schema**: JSON stdout key list and verdict values (agent must parse)
+- **Mutable/immutable file boundary**: evaluator + dependencies = IMMUTABLE, genome = MUTABLE
+- **Trace recording timing**: record immediately on ADOPT, axis exhaustion, every 10 experiments, termination
+- **Trace YAML frontmatter required fields**: session, date, experiment_range, adopts, rejects, metric_start, metric_end
+
+### Step 5: Configure Hooks
+
+Propose hooks appropriate for the project type. Select only applicable ones from the recipe below.
+Explain "why needed" for each proposal. Don't add if user declines.
+
+#### Hook Recipe (by project type)
+
+PostToolUse (Edit|Write) hooks — auto-verification on code changes:
+
+| Project Type | Hook Target Pattern | Command | Enforcement | Purpose |
+|-------------|-------------------|---------|-------------|---------|
+| TypeScript | `*.ts\|*.tsx` | `tsc --noEmit 2>&1 \| tail -20` | **Blocking** (exit 1) | Catch type errors immediately |
+| Python (typed) | `*.py` | `mypy {changed_file} 2>&1 \| tail -10` | **Blocking** (exit 1) | Type hint verification |
+| Python (sim/test) | `sim/*.py\|test/*.py` | `pytest -x -q 2>&1 \| tail -15` | **Blocking** (exit 1) | Test break detection |
+| Monorepo | Per-package | Run only changed package's build/test | **Blocking** (exit 1) | Prevent full build |
+| Doc-code sync | Design doc related code | echo warning message | **Warning** (echo only) | Design doc cross-reference reminder |
+
+**Enforcement policy**:
+- **Blocking (exit 1)**: verification with programmatic pass/fail judgment. Blocks tool execution on failure.
+- **Warning (echo only)**: verification not programmatically possible, needs human judgment. Message output only.
+- **Default**: build/type/test = blocking. Doc sync/design reference = warning.
+
+Hook writing principles:
+- Match file_path from `$CLAUDE_TOOL_INPUT` with grep
+- On success: 1-line summary only (save context)
+- On failure: tail last N lines only (no full output)
+- Blocking hooks must `exit 1` on failure (PreToolUse: blocks tool execution, PostToolUse: emphasizes warning)
+- Write in settings.local.json (project scope, not global)
+- If existing settings.local.json: Read first, then merge (no overwriting)
+
+hooks JSON schema (settings.local.json):
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {"matcher": "Bash|Edit|Write", "hooks": [{"type": "command", "command": "...", "timeout": 5000}]}
+    ],
+    "PostToolUse": [
+      {"matcher": "Edit|Write", "hooks": [{"type": "command", "command": "..."}]}
+    ]
+  }
+}
+```
+- `matcher`: tool name pattern (`|` for OR). `Bash`, `Edit`, `Write`, `Read`, etc.
+- `type`: always `"command"`. `timeout`: in ms (default none, add when needed).
+- `command`: shell command. Access tool input JSON via `$CLAUDE_TOOL_INPUT`.
+
+Hook coverage priority:
+1. **Build break prevention** (highest): catch type check/compile errors immediately
+2. **Test break prevention**: auto-run tests for changed code paths
+3. **Lint/format**: style consistency (only for projects with linters)
+4. **Doc-code sync**: code change doc verification alerts for projects with master documents
+
+#### Evaluator Protection Hooks (required for autoresearch projects)
+
+For projects using the Fixed Evaluator pattern, the **entire evaluator dependency chain** must be protected.
+Paper principle: "The proposer never sees test-set results; its only feedback comes from the search set."
+
+**Protection scope**: evaluator file itself + all dependencies it imports.
+Protecting only the evaluator while leaving dependencies unguarded allows manipulating evaluation results via dependency modification.
+
+**Bash tool bypass blocking**: `PreToolUse Edit|Write` alone is insufficient.
+Add a `PreToolUse Bash` hook to also block write commands like `cp`, `mv`, `sed -i`, `python -c "open(...,'w')"` targeting protected files.
+
+```
+protect-files.sh protection target determination:
+1. Trace import statements in the evaluator file
+2. Add all imported project modules to the protection list
+3. Include data files (prevent direct modification)
+```
+
+settings.local.json example (with Bash bypass blocking):
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{"type": "command", "command": "bash .claude/hooks/protect-files.sh"}]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [{"type": "command", "command": "bash .claude/hooks/protect-files-bash.sh"}]
+      }
+    ]
+  }
+}
+```
+
+### Step 6: Domain Skill Decision
+
+Determine whether the project needs domain expertise.
+
+**Immediate creation conditions** (all must be met):
+- Planning docs/domain knowledge are abundant
+- Domain rules in CLAUDE.md expected to exceed 20 lines
+- Recurring expert judgment needed (e.g., card balancing, strategy design, API design)
+
+**Create later** (default):
+- Record domain rules in CLAUDE.md first
+- Split on Level 3 escalation signals (same question repeating, CLAUDE.md exceeds 20 lines, anti-pattern accumulation)
+
+Domain skills go in `.claude/skills/{name}/SKILL.md`.
+Skills are "how to" documents, not agent definitions.
+
+**Skill document quality criteria** (paper: "skill document quality = highest leverage"):
+- **State prohibitions and goals**, leave diagnosis methods free (agent decides)
+- Define role, directory structure, CLI commands, output format
+- Include Anti-patterns section (prohibited patterns learned from past failures)
+- Debug with 3-5 short test iterations before production runs
+
+### Step 7: Write Evolution Log
+
+After all components (CLAUDE.md, hooks, skills) are confirmed, write the initial evolution log:
+
+`traces/evolution/001-initial-harness.md`:
+- iteration 1, date, type: additive, verdict: neutral
+- Record actually added hooks/rules/tests and their rationale
+- Format: see reference.md Section 1
+
+### Step 8: Completion Verification
+
+All items below must pass for init-harness to be complete:
+
+- [ ] `.claude/traces/{evolution,failures,experiments}/` directories exist
+- [ ] `traces/search-set.md` template created
+- [ ] (autoresearch projects) `traces/experiments/` episode format documented (ref: reference.md Section 1)
+- [ ] (autoresearch projects) Evaluator protection hooks installed (protect-files.sh + Bash bypass blocking)
+- [ ] `traces/evolution/001-initial-harness.md` written (Step 7)
+- [ ] CLAUDE.md includes Harness section (hooks, traces/, change strategy)
+- [ ] CLAUDE.md within 100 lines (split to docs/ complete if exceeded)
+- [ ] Hooks registered in `settings.local.json`
+- [ ] `.claude/agents/` directory was NOT created
+- [ ] (if skill created in Step 6) `.claude/skills/{name}/SKILL.md` exists + Anti-patterns section included + domain rules migrated from CLAUDE.md
+- [ ] (if learned/ exists) existing patterns from `~/.claude/skills/learned/` referenced in CLAUDE.md
+- [ ] No duplicates between global rules (~/.claude/rules/common/) and CLAUDE.md
+
+## Important
+
+- Start with minimal viable harness — incrementally strengthen via feedback loop
+- Include only "agent will fail without this", not "nice to have"
+- **Do NOT create agent teams/orchestrators/agent definition files (.claude/agents/)** — Meta-Harness focuses on single-agent environment optimization. Subagents (Tier 2 Evaluator, Explore, etc.) are allowed for context isolation — this is single-agent tool usage, not multi-persona collaboration
+- Achieve full coverage via hooks + Sprint Contract done conditions. Avoid over-installing hooks
+
+## Hook Configuration Example (settings.local.json)
+
+```json
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/auto-format.sh",
+            "timeout": 10000
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/protect-files.sh",
+            "timeout": 5000
+          }
+        ]
+      }
+    ]
+  }
+}
+```

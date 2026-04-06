@@ -1,0 +1,45 @@
+# Example Project CLAUDE.md
+
+This is what `/init-harness` generates for a typical TypeScript backend project.
+Your actual CLAUDE.md will differ based on project analysis.
+
+---
+
+## Build
+
+```bash
+npm run dev          # Start dev server
+npm run build        # Production build
+npm run test         # Run tests (vitest)
+npm run lint         # ESLint + Prettier check
+npm run typecheck    # tsc --noEmit
+```
+
+## Architecture
+
+- src/modules/{domain}/ — feature modules (controller, service, repository)
+- Dependency direction: controller → service → repository (never reverse)
+- No direct DB access from controllers
+- All external calls wrapped in service layer
+
+## Conventions
+
+- Named exports only (no default exports)
+- Error handling: custom AppError class, centralized error handler
+- Naming: camelCase for variables/functions, PascalCase for types/classes
+- Tests colocated: `src/modules/user/user.service.test.ts`
+
+## Harness
+
+### Hooks (settings.local.json)
+- PostToolUse Edit|Write on `*.ts` → `tsc --noEmit` (blocking)
+- PostToolUse Edit|Write on `*.test.ts` → `vitest run --reporter=verbose` (blocking)
+
+### Traces
+- `.claude/traces/evolution/` — harness change history
+- `.claude/traces/failures/` — failure diagnosis (YAML: classification, resolved)
+- `.claude/traces/search-set.md` — verification cases
+
+### Change Strategy
+Additive first → Subtractive → Structural. One change at a time.
+Record all changes in traces/evolution/ with verdict.
