@@ -63,8 +63,6 @@ evaluate.py's JSON stdout is critical diagnostic material. Preserve originals, n
 - `traces/experiments/NNN-*.md`: include representative experiments' raw output in episode traces
 - Preserve: verdict, score, gates, metrics in full — no selective field omission
 
-**failures/ file format note**: When harness-engineer records failures, YAML frontmatter must include `classification:` field ("information gap" | "constraint gap" | "tooling gap"). This field is used as a key for Non-Markovian diagnosis (same-type search) and Transfer (cross-project promotion). Format details: see reference.md Section 1.
-
 **Evolution log is written in Step 7** (recorded after all components are confirmed).
 
 ### Step 4: Write/Enhance CLAUDE.md
@@ -190,7 +188,7 @@ Determine whether the project needs domain expertise.
 
 **Create later** (default):
 - Record domain rules in CLAUDE.md first
-- Split on Level 3 escalation signals (same question repeating, CLAUDE.md exceeds 20 lines, anti-pattern accumulation)
+- Split when same question repeats, CLAUDE.md exceeds 20 lines of domain rules, or anti-patterns accumulate
 
 Domain skills go in `.claude/skills/{name}/SKILL.md`.
 Skills are "how to" documents, not agent definitions.
@@ -231,7 +229,7 @@ All items below must pass for init-harness to be complete:
 
 - Start with minimal viable harness — incrementally strengthen via feedback loop
 - Include only "agent will fail without this", not "nice to have"
-- **Do NOT create agent teams/orchestrators/agent definition files (.claude/agents/)** — Meta-Harness focuses on single-agent environment optimization. Subagents (Tier 2 Evaluator, Explore, etc.) are allowed for context isolation — this is single-agent tool usage, not multi-persona collaboration
+- **Do NOT create agent teams/orchestrators/agent definition files (.claude/agents/)** — Meta-Harness focuses on single-agent environment optimization. Subagents (evaluator, explore, etc.) are allowed for context isolation — this is single-agent tool usage, not multi-persona collaboration
 - Achieve full coverage via hooks + Sprint Contract done conditions. Avoid over-installing hooks
 
 ## Hook Configuration Example (settings.local.json)

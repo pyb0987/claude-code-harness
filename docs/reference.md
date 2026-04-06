@@ -38,7 +38,6 @@ Trigger: {why was the change needed}
 ```markdown
 ---
 date: "YYYY-MM-DD"
-classification: "information gap" | "constraint gap" | "tooling gap"
 escalated_to: CLAUDE.md | docs | skill | hook | none
 search_set_id: "SS-NNN"  # Reference to search-set entry if applicable
 resolved: true | false
@@ -58,12 +57,6 @@ resolved: true | false
 ### Prevention
 {How to prevent recurrence — added rules/hooks/tests and their content}
 ```
-
-### YAML Frontmatter Usage
-- `grep -l 'verdict: regressed' traces/evolution/` — filter only regressed changes
-- `grep -l 'resolved: false' traces/failures/` — filter only unresolved failures
-- `grep -l 'type: structural' traces/evolution/` — filter only structural changes
-- Frontmatter is in YAML format, enabling programmatic aggregation
 
 ### Numbering
 - `NNN` is a 3-digit sequence number (001, 002, ...)
@@ -135,6 +128,11 @@ When harness-engineer diagnoses:
 4. Read Lesson/Prevention sections of related traces
 5. Verify new changes do not repeat prior confounding variables
 
+Useful grep filters:
+- `grep -l 'verdict: regressed' traces/evolution/` — find regressed changes
+- `grep -l 'resolved: false' traces/failures/` — find unresolved failures
+- `grep -l 'type: structural' traces/evolution/` — find structural changes
+
 ## 2. Analysis — Project Diagnosis
 
 When applying a harness to a new project, analyze the following:
@@ -198,56 +196,17 @@ Determine components based on analysis results. Do not include everything.
 - Codebase overviews, directory listings
 - Exceeding 100 lines (split to docs/ if exceeded)
 
-## 5. Domain Knowledge Escalation Path
+## 5. Knowledge Escalation
 
-```
-Level 1: Add rule to CLAUDE.md
-  → Knowledge solvable in one or two lines
-
-Level 2: Separate document to docs/
-  → Connect with reference link from CLAUDE.md
-
-Level 3: Create domain skill in .claude/skills/
-  → "Think like this domain expert" rather than "follow these rules"
-```
-
-**Level 3 signals:** same question repeating, CLAUDE.md exceeds 20 lines of domain rules, judgment criteria needed, anti-pattern accumulation
+When CLAUDE.md grows too large, split detailed content to docs/. For recurring domain expertise, create a skill in `.claude/skills/{name}/SKILL.md`.
 
 **Domain skill creation procedure:**
-1. Detect need — get user confirmation
-2. Extract domain knowledge from existing CLAUDE.md + docs/ + code + **traces/**
+1. Detect need → get user confirmation
+2. Extract domain knowledge from existing CLAUDE.md + docs/ + code + traces/
 3. Create at `project-root/.claude/skills/{name}/SKILL.md`
 4. Migrate related domain rules from CLAUDE.md (remove duplicates)
 
-## 6. Evaluator Prompt Template
-
-For Tier 2 Evaluator subagent invocation:
-```
-Agent tool call:
-  model: haiku
-  prompt:
-    ## Role: Independent verifier. Ignore the generator's intent or self-assessment.
-    ## Checklist: [full checklist file content]
-    ## Artifact: [full artifact content]
-    ## Task: Judge each item as pass/fail. One line of evidence each.
-    ## Output: JSON { "results": [{"item": N, "verdict": "pass|fail", "reason": "..."}] }
-```
-
-## 7. Entropy Management — Drift Prevention
-
-### Code-Rule Synchronization
-- Periodically check for divergence between CLAUDE.md and actual code
-- Remove rules that are no longer valid
-- When adding new dependencies/patterns, decide whether to update the harness
-
-### Model Assumption Re-validation (Scaffolding Removal)
-> "every component in a harness encodes an assumption about what the model can't do on its own"
-
-- On model version change: ask "Is this rule still needed with the current model?"
-- Removal judgment: work one session without the rule — if no problems, candidate for removal
-- Rules do not just accumulate — actively remove rules that have become unnecessary
-
-## 8. Search-Set — Regression Verification
+## 6. Search-Set — Regression Verification
 
 ### Format (`traces/search-set.md`)
 ```markdown

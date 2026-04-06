@@ -120,7 +120,7 @@ Identify conflicts between Critic results and produce unified judgment:
 Post-review learning:
 - If a Critic missed a perspective → add that perspective for similar future problems
 - If the user overrode a Critic's judgment → review that Critic's prompt/scope
-- If a domain recurs → promote that Critic to a dedicated skill in `.claude/skills/` (Level 3)
+- If a domain recurs → promote that Critic to a dedicated skill in `.claude/skills/`
 
 Learning record paths:
 - **Project-specific learning** → project memory/ (e.g., `feedback_review_*.md`)

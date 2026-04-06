@@ -166,7 +166,7 @@ The loop the agent executes when program.md already exists.
 
 #### Termination Conditions
 - `n >= MAX_EXPERIMENTS` (default: 100)
-- `consecutive_rejects >= 20` → record as blocked in handoff.md + **escalate**: record in traces/failures/ as "tooling gap" or "constraint gap", then escalate to harness-engineer or /multi-review (Tier 3). No simple retries — structural cause diagnosis required
+- `consecutive_rejects >= 20` → record as blocked in handoff.md + **escalate**: record in traces/failures/ with diagnosis of the structural cause, then escalate to harness-engineer or /multi-review. No simple retries — structural cause diagnosis required
 - Context window exhausted → record as in_progress in handoff.md (not recorded in failures/ — exhaustion is a budget/session limit, not a harness diagnosis target)
 - ERROR verdict → revert + try different approach (not stop)
 
@@ -186,11 +186,11 @@ Episode file: `.claude/traces/experiments/NNN-{name}.md`
 - Format: see reference.md "Experiment Episode Format" section
 - Numbering: next sequence number within `traces/experiments/`
 - Multiple episodes possible per session (e.g., one per ADOPT)
-- **harness-engineer integration**: experiment episodes do not have `classification:` fields (different layer from failures/). harness-engineer reads Exhausted Axes / Lesson sections directly via Read instead of grep (see reference.md trace usage patterns)
+- **harness-engineer integration**: experiment episodes are a different layer from failures/ — harness-engineer reads Exhausted Axes / Lesson sections directly
 
-#### Handoff — On Session Transition
+#### Session Continuity
 
-On termination, update `.claude/handoff.md` (standard docs/methodology.md format + experiment-specific fields):
+On termination, update `.claude/handoff.md`:
 ```
 ## Status: in_progress | blocked | paused
 ## Last completed: experiment n=<N>, verdict=<ADOPT|REJECT>
@@ -207,8 +207,8 @@ Next session reads handoff.md + latest episode traces to maintain continuity.
 ## Evaluator Problem Detection → Harness Feedback Loop
 
 When structural problems with evaluate.py itself are suspected (gradient dead zone, guard malfunction, metric distortion, etc.):
-1. Record in `traces/failures/NNN-{name}.md` (classification: "constraint gap", include symptoms + supporting data)
-2. Escalate to harness-engineer or /multi-review (Tier 3)
+1. Record in `traces/failures/NNN-{name}.md` (include symptoms + supporting data)
+2. Escalate to harness-engineer or /multi-review
 3. evaluate.py is immutable, so **the agent does not modify it directly** — redesign after user confirmation
 
 Suspicion signals: all experiments fail on the same guard, metric improves but verdict is REJECT, consecutive REJECTs with sufficient remaining hypothesis space.
@@ -223,13 +223,9 @@ These are human-agent collaboration areas that are not automated:
 - **Next research axis selection**: Setting new program.md direction
 - **evaluate.py redesign**: Reviewing the validity of evaluation criteria themselves
 
-When these judgments are needed, escalate to /multi-review (Tier 3) or human intervention.
+When these judgments are needed, escalate to /multi-review or human intervention.
 
-## Evaluator Tier Integration
+## Evaluator Integration
 
-This skill's evaluate.py corresponds to **Tier 0 (Fixed Evaluator)** in docs/methodology.md:
-- Tier 0: Automated fitness function (this skill) — fastest and cheapest
-- Tier 1: Checklist (binary items)
-- Tier 2: Subagent evaluation
-- Tier 3: multi-review (qualitative)
-- Escalation: Tier 0 ADOPT conflicts with intuition → Tier 3
+This skill's evaluate.py is the fixed evaluator (Tier 0) from docs/methodology.md — the fastest and cheapest evaluation method.
+For high-stakes qualitative decisions, escalate to /multi-review.

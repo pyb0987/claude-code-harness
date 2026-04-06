@@ -32,13 +32,11 @@ These principles come directly from Meta-Harness experiments and ablation studie
 
 These are my own engineering decisions, applying the paper's insights to Claude Code's specific capabilities. They are *not* from the paper and have not been experimentally validated at the paper's scale:
 
-- **Evaluator Separation Tiers (0→3)** — A graduation from fully automated evaluation (Tier 0: immutable Python evaluator) to fully qualitative (Tier 3: multi-review). The paper uses only automated evaluation; I added Tiers 1-3 for tasks where automated metrics don't exist.
+- **Evaluator Separation** — Tier 0 (fixed evaluator for autoresearch) + multi-review for high-stakes decisions. The paper uses only automated evaluation; multi-review covers tasks where automated metrics don't exist.
 - **Sprint Contract** — `Done when: [condition] / Evaluator: [Tier]` defined before work starts. Forces explicit completion criteria and evaluation method selection.
-- **Failure classification** — Every failure categorized as *information gap*, *constraint gap*, or *tooling gap*. Each classification maps to a specific response: add knowledge, add rules, or add automation.
-- **Knowledge escalation (Level 1→3)** — Rules start in CLAUDE.md (Level 1), graduate to docs/ (Level 2), then to dedicated skills (Level 3) as complexity grows. Cross-project patterns promote to `~/.claude/skills/learned/`.
-- **Context efficiency strategies** — "Successes silent, failures loud." Subagents as context firewalls (absorb intermediate noise, pass only results). Session handoff protocol for long tasks.
-- **YAML frontmatter traces** — Structured trace files with machine-queryable frontmatter: `grep -l 'verdict: regressed' traces/evolution/` filters only regressed changes.
-- **Entropy management** — Periodic CLAUDE.md drift detection. Model assumption re-validation: "Is this rule still needed with the current model?"
+- **Trace-based diagnosis with YAML frontmatter** — Structured trace files with machine-queryable frontmatter: `grep -l 'verdict: regressed' traces/evolution/` filters only regressed changes. Raw traces over summaries, extended with programmatic querying.
+- **Knowledge escalation** — When CLAUDE.md grows too large, split to docs/. For recurring expertise, create dedicated skills. Cross-project patterns promote to `~/.claude/skills/learned/`.
+- **Context efficiency** — Successes silent, failures loud. Subagents as context firewalls.
 - **Multi-review protocol** — 2-4 independent critic subagents with explicit scope separation, parallel execution, convergence check, and synthesis. For high-stakes decisions where single-perspective evaluation is insufficient.
 
 ## Installation
@@ -159,7 +157,6 @@ When an agent repeatedly fails at TypeScript type errors:
 # traces/failures/001-type-error-loop.md
 ---
 date: "2026-04-01"
-classification: "constraint gap"
 escalated_to: hook
 search_set_id: "SS-001"
 resolved: true
@@ -202,7 +199,6 @@ refs: []
 Trigger: Agent repeatedly introduced type errors (see failures/001)
 
 ### Diagnosis
-- failures/001 classified as "constraint gap"
 - Agent cannot reliably self-enforce type checking under context pressure
 - Solution: external enforcement via hook
 
@@ -229,13 +225,15 @@ This aligns with the transfer principle: linter/CI-enforceable rules → tooling
 
 **Why immutable evaluate.py?** The paper principle: if the agent can modify its own evaluator, it contaminates the feedback signal. Evaluator protection hooks enforce this boundary.
 
+**Why transfer rules to tooling?** Rules enforceable by linters/CI should live in tooling, not CLAUDE.md. CLAUDE.md should contain only intent and judgment criteria that tools cannot enforce. This keeps agent instructions high-signal.
+
 ## Acknowledgments
 
 Core principles are derived from:
 - [Meta-Harness: End-to-End Optimization of Model Harnesses](https://arxiv.org/abs/2603.28052) (Lee et al., 2026)
 - [Effective Harnesses for Long-Running Agents](https://anthropic.com/engineering/effective-harnesses-for-long-running-agents) (Anthropic, 2025)
 
-The evaluator separation tiers, failure classification system, knowledge escalation path, multi-review protocol, and other original designs in this framework are my own engineering decisions built on these foundations. They have not been experimentally validated at the paper's scale.
+The evaluator separation, multi-review protocol, and other original designs in this framework are my own engineering decisions built on these foundations. They have not been experimentally validated at the paper's scale.
 
 ## License
 

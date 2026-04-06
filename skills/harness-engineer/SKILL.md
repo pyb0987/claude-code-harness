@@ -38,7 +38,7 @@ Propose harness changes while freely diagnosing within the following constraints
 ### Diagnostic Sources
 - **Always check** `.claude/traces/` raw traces first (create directory if missing)
 - Do not rely on summaries/memory — read raw logs, code, and scores directly
-- **Required procedure (Non-Markovian)**: Before starting diagnosis, always run `grep -rl 'classification:' .claude/traces/failures/` to check for same-type cases. If found, Read the file and diagnose why the prior Prevention did not work first. Do not skip this step
+- **Required procedure (Non-Markovian)**: Before starting diagnosis, always run `ls .claude/traces/failures/` to check for similar past failures. If found, Read the file and diagnose why the prior Prevention did not work first. Do not skip this step
 - If a similar failure exists in traces/failures/, diagnose why the prior Prevention failed before anything else
 - **Autoresearch projects**: Read Exhausted Axes / Lesson sections from `traces/experiments/` episodes directly (experiments/ has no classification field — use Read-based reference instead of grep)
 
@@ -72,7 +72,6 @@ Report diagnosis results in this structure:
 ```
 ### Diagnosis
 - Cause: {specific cause, file:line references}
-- Classification: information gap | constraint gap | tooling gap
 - Prior similar cases: {traces/ reference or "none"}
 - Transition judgment: if prior Prevention exists → (a) Prevention itself insufficient: propose strengthening, (b) Prevention adequate but different cause: restart diagnosis with new cause, (c) Prevention working but recurred: consider tool/hook escalation
 
@@ -90,14 +89,13 @@ Report diagnosis results in this structure:
 ## Periodic Review
 
 Review is possible even without active failures:
-- When drift is found via `/entropy-check`
+- When drift is found via periodic harness review
 - On model version change (scaffolding removal verification)
 - When 5+ traces/evolution/ have accumulated for pattern analysis
-- **30+ days with no change**: if the latest traces/evolution/ date exceeds 30 days, recommend auto-triggering entropy-check. This prevents silent degradation
+- **30+ days with no change**: if the latest traces/evolution/ date exceeds 30 days, recommend a harness review. This prevents silent degradation
 
 ### Transfer (Cross-Project Promotion)
-- When the same `classification` value appears **3+ times** in `traces/failures/`, consider promotion to `~/.claude/skills/learned/`
-- Verify: `grep -c 'classification: {type}' .claude/traces/failures/*.md` to check frequency
+- When the same failure pattern appears **3+ times** in `traces/failures/`, consider promotion to `~/.claude/skills/learned/`
 - On promotion: integrate Prevention from those failures into a learned skill document
 - Replace corresponding constraints in project CLAUDE.md with learned skill reference (remove duplicates)
 - **Post-promotion search-set update**: if Active cases correspond to promoted patterns, move them to Archived (record learned skill path in resolution). Simultaneously add new verify items to Active testing the learned skill's effectiveness, maintaining loop continuity

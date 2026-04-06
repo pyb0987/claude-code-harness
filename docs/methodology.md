@@ -65,21 +65,6 @@ Agent performance degrades as context fills up (Context Rot).
 - The value of subagents is not role division but **context isolation**
 - They absorb intermediate noise from research/exploration/implementation, passing only results upstream
 
-### Enforce Incremental Work
-- Work on one feature at a time
-- Git commit + progress notes at each completion
-
-### Session Handoff
-When long tasks cross session boundaries, update `.claude/handoff.md`:
-```
-## Status: {in_progress | blocked | paused}
-## Last completed: {1 line}
-## Current state: {current code/doc state, 1-2 lines}
-## Remaining:
-- [ ] {remaining items}
-## Next entry point: {first task for next session}
-```
-
 ## Minimal Outer Loop & Code-Space Search — Design Principles
 
 ### P3: The outer loop must be simple enough to verify by inspection
@@ -96,49 +81,28 @@ When long tasks cross session boundaries, update `.claude/handoff.md`:
 
 ## Feedback Loop — Evolution Protocol
 
-### Workflow: Planner → Generator → Evaluator
-For medium+ tasks (3+ file modifications), follow this order:
-1. **Planner** (prometheus skill or direct): confirm scope → write Sprint Contract
-2. **Generator** (main agent): implement based on Sprint Contract done conditions
-3. **Evaluator** (Tier 0/1/2/3): verify against done conditions + checklist
-
 ### Failure → Trace Recording → Rule Addition Loop
 1. Agent fails or repeats the same fix
 2. **Record in traces**: preserve raw context in `.claude/traces/failures/NNN-{name}.md`
-3. Classify root cause: **information gap** | **constraint gap** | **tooling gap**
-4. Respond based on classification:
-   - Information gap → knowledge escalation (see reference.md)
-   - Constraint gap → add linter rule or CLAUDE.md constraint
-   - Tooling gap → add hook or backpressure mechanism
-5. **Record change in evolution log**: `.claude/traces/evolution/NNN-{name}.md`
-6. **Verify with search-set**: confirm past failures in `.claude/traces/search-set.md` don't recur
-7. Add new failure to search-set if it has verification value
+3. Respond: add knowledge to docs, add constraint to CLAUDE.md, or add tooling/hooks as appropriate
+4. **Record change in evolution log**: `.claude/traces/evolution/NNN-{name}.md`
+5. **Verify with search-set**: confirm past failures in `.claude/traces/search-set.md` don't recur
+6. Add new failure to search-set if it has verification value
 
 ### Sprint Contract
 ```
 Done when: [specific, verifiable completion condition]
-Evaluator: [Tier 0 | Tier 1 + checklist | Tier 2 + checklist filename | Tier 3]
+Evaluator: [Tier 0 (fixed evaluator) | multi-review (high-stakes)]
 ```
 
 ### Evaluator Separation
-Tier numbers indicate **automation level**: 0=fully automated → 3=fully qualitative.
 
 **Tier 0 — Fixed Evaluator (quantitative R&D / autoresearch)**:
 - Evaluator: Python script, **immutable**, JSON stdout
 - Verdict: binary (ADOPT/REJECT), REJECT → auto revert
-- Escalation: 20 consecutive REJECTs → Tier 3
+- Escalation: 20 consecutive REJECTs → multi-review
 
-**Tier 1 — Checklist-based (low-risk only)**:
-- Checklist items must be binary (pass/fail)
-- **Structural limitation**: Generator evaluates itself — conflicts with Evaluator Separation principle. Self-evaluation bias is inevitable
-- **Use condition**: only for low-risk tasks that are easy to revert. Medium-risk and above must use Tier 2+
-- Tier 1 is a convenience compromise, not a recommended pattern — **prefer Tier 0 (automation) or Tier 2 (structural separation) when possible**
-
-**Tier 2 — Evaluator Subagent (high-risk)**:
-- Generator → artifact → Evaluator (haiku) → pass/fail → fix only failures (max 3 rounds)
-
-**Tier 3 — multi-review (highest-risk)**:
-- Qualitative judgment escalated to /multi-review
+**For high-stakes qualitative decisions**: use /multi-review (parallel independent critics).
 
 ### Hooks vs Backpressure
 - **Hooks**: enforced externally (type checks, formatters)
@@ -159,14 +123,6 @@ Tier numbers indicate **automation level**: 0=fully automated → 3=fully qualit
 - Debug skill documents with 3-5 short test iterations before production runs
 - After enough iterations, **accumulated traces shape behavior more strongly than the skill document itself**
 
-### Knowledge Escalation & Promotion to learned/
+### Knowledge Escalation
+When CLAUDE.md grows too large, split detailed content to docs/. For recurring domain expertise, consider a dedicated skill in `.claude/skills/`.
 
-| Stage | Form | Condition |
-|-------|------|-----------|
-| First occurrence | traces/failures/ record | Recurrence unconfirmed |
-| Same project repeat | Add constraint to project CLAUDE.md | 2+ in same project |
-| Cross-project pattern | `~/.claude/skills/learned/` | Pattern solidified globally |
-
-### Transfer Principle
-Rules enforceable by linters/CI should be removed from CLAUDE.md and transferred to tooling.
-CLAUDE.md should contain only intent and judgment criteria that tools cannot enforce.
