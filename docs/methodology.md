@@ -29,6 +29,11 @@ Every harnessed project must have `.claude/traces/` (auto-created by `/init-harn
 - Evolution log/failure diagnosis formats: see reference.md
 - Preserve: failures requiring causal reasoning, before/after comparisons, confounding variable identification
 - Don't preserve: simple typos, obvious fixes
+- **failures/ recording triggers** (objective criteria):
+  1. New guard violation type (a guard failure not seen before)
+  2. Result opposite to hypothesis (e.g., expected improvement → degradation)
+  3. Structural code change failure (logic change, not parameter tuning)
+  Simple threshold misses (REJECT_THRESHOLD) don't need recording — experiments/ episode tables suffice
 - **search-set**: each entry must have a `verify` field — an auto-executable verification command
 - **experiments/**: record episodes immediately at milestones (ADOPT, axis exhaustion, every 10 experiments). Format: see reference.md
 
@@ -82,7 +87,8 @@ Before starting work, define: `Done when: [specific, verifiable condition]`
 
 ### Fixed Evaluator (for autoresearch)
 - Evaluator: Python script, **immutable**, JSON stdout
-- Verdict: binary (ADOPT/REJECT), REJECT → auto revert
+- Verdict: binary (ADOPT/REJECT), REJECT → revert
+- **Reject code preservation**: before reverting, capture `git diff HEAD~1` into failures/ trace (when recording triggers apply). Reverting without preserving the diff permanently loses raw context
 - Escalation: 20 consecutive REJECTs → manual review
 
 ### Hooks vs Backpressure

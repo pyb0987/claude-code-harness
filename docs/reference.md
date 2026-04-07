@@ -58,6 +58,16 @@ resolved: true | false
 {How to prevent recurrence — added rules/hooks/tests and their content}
 ```
 
+### Autoresearch Failure Trace Supplement
+
+When recording a Tier 0 autoresearch REJECT in failures/, additionally include:
+- **genome diff**: `git diff HEAD~1` output (captured before revert)
+- **evaluator JSON**: full evaluate.py stdout
+- **causal analysis**: 1-2 line summary (why hypothesis and result diverged)
+
+**Reject workflow**: (1) parse verdict → (2) if recording trigger applies, capture diff + JSON → (3) `git reset --hard HEAD~1` → (4) jsonl logging.
+Code is unrecoverable after revert, so order matters.
+
 ### Numbering
 - `NNN` is a 3-digit sequence number (001, 002, ...)
 - `traces/evolution/` and `traces/failures/` within a project have independent numbering
