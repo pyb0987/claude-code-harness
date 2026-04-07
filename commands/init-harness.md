@@ -41,6 +41,10 @@ last_updated: "YYYY-MM-DD"
 After harness changes, verify effectiveness using active cases in this list.
 Update last_updated when adding/removing items.
 
+## Operational Policy
+- When Active reaches 0, the regression safety net vanishes → restore an Archived entry's verify to Active, or run `grep -l 'resolved: false' .claude/traces/failures/` to register an unresolved failure as a new SS
+- Archive criteria: (a) the linked failure's `escalated_to` is filled (absorbed into CLAUDE.md / hook / tool) AND (b) another active guard exists for the same pattern — if either is missing, keep it in Active
+
 ## Active
 ### SS-001: {first failure scenario identified from project analysis}
 - **Symptom**: {risk found in Step 2 analysis — e.g., deploying without tests, ignoring type errors}
@@ -76,6 +80,7 @@ Write or enhance project CLAUDE.md:
    - Hook list + each hook's enforcement level (blocking/warning)
    - traces/ structure
    - **Change strategy**: Additive first -> Subtractive -> Structural (one at a time, confounding variable isolation)
+   - **Failure escalation loop**: a `resolved: true` entry in `traces/failures/*.md` must satisfy at least one of — (a) `escalated_to` is not empty (absorbed into CLAUDE.md / hook / tool), (b) an active search-set guard for the same pattern exists. If neither holds, do not mark it resolved
    - Protected files (if applicable)
 
 #### Additional Requirements for Autoresearch Projects
@@ -222,6 +227,8 @@ All items below must pass for init-harness to be complete:
 - [ ] `.claude/agents/` directory was NOT created
 - [ ] (if skill created in Step 6) `.claude/skills/{name}/SKILL.md` exists + Anti-patterns section included + domain rules migrated from CLAUDE.md
 - [ ] No duplicates between global rules (~/.claude/rules/common/) and CLAUDE.md
+- [ ] Every `resolved: true` entry in `traces/failures/*.md` has a non-empty `escalated_to` or is linked to an active search-set guard (exception: `classification: false_alarm` does not require escalation)
+- [ ] `traces/search-set.md` has at least 1 Active entry (if 0, restore an Archived item or register an unresolved failure)
 
 ## Important
 
