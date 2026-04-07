@@ -72,8 +72,14 @@ def evaluate(variant, baseline):
 
     return {"verdict": verdict, "metric": metric, "improvement_pct": improvement, "guards": guards}
 
+# Atomically update SSOT baseline on ADOPT
+result = evaluate(...)
+if result["verdict"] == "ADOPT":
+    with open("best_score.txt", "w") as f:
+        f.write(f"{result['metric']}\n")
+
 # stdout JSON only
-print(json.dumps(evaluate(...)))
+print(json.dumps(result))
 ```
 
 Requirements:
@@ -81,6 +87,7 @@ Requirements:
 - Timeout guard (prevent infinite loops)
 - Binary verdict: ADOPT / REJECT_GUARD / REJECT_THRESHOLD / ERROR
 - Immutable: state "do not modify" in program.md
+- **SSOT for baseline**: evaluate.py writes `best_score.txt` on ADOPT. This file is the **single source of truth** for the current baseline. Do NOT duplicate the baseline value in program.md, handoff.md, or anywhere else — duplication creates cadence-conflict drift (see traces/failures/ for the diagnosed failure mode).
 
 #### Step 3: Write program.md
 ```markdown
@@ -91,7 +98,8 @@ You are an autonomous researcher for [project]. Operate autonomously.
 Do NOT pause. Stop at 100 experiments or hypothesis exhaustion.
 
 ## Objective
-Maximize [metric]. Current best: [value].
+Maximize [metric]. Current baseline is read from `best_score.txt`
+(SSOT, machine-managed by evaluate.py — do NOT duplicate the value here).
 
 ## What You Can Modify (Mutable Genome)
 - [file1] — [what can change]
@@ -99,6 +107,7 @@ Maximize [metric]. Current best: [value].
 
 ## What You CANNOT Modify (Immutable)
 - evaluate.py, program.md (except `## Rejection History` which the agent updates), data/*
+- `best_score.txt` — machine-managed by evaluate.py. Neither agent nor human edits directly.
 
 ## Experiment Loop
 [standard loop — see Runtime Protocol below]
@@ -159,7 +168,8 @@ The loop the agent executes when program.md already exists.
 4. Implement change (modify only mutable genome files specified in program.md)
 5. git commit -m "experiment: [hypothesis]"
 6. Run evaluate.py → parse JSON
-7. ADOPT → keep + update baseline + log
+7. ADOPT → keep + log to experiments.jsonl
+     (baseline auto-updated by evaluate.py in best_score.txt — agent does NOT manually update any baseline doc)
    REJECT → git reset --hard HEAD~1 + log
 8. Repeat from 3 (until budget or consecutive reject limit)
 ```
@@ -194,7 +204,8 @@ On termination, update `.claude/handoff.md`:
 ```
 ## Status: in_progress | blocked | paused
 ## Last completed: experiment n=<N>, verdict=<ADOPT|REJECT>
-## Current state: baseline metric=<value>, consecutive_rejects=<count>
+## Current state: consecutive_rejects=<count>
+  (baseline value: see best_score.txt — do NOT duplicate here)
 ## Remaining:
 - [ ] <remaining exploration axes or unexplored hints>
 ## Next entry point: <suggested next hypothesis>
