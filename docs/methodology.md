@@ -72,6 +72,29 @@ Key finding from Meta-Harness experiments:
 - Rewriting prompts in natural language ("try harder") is noise, not search
 - **Autoresearch application**: directly modify the genome (Python code) to explore performance. Code changes, not natural language instructions
 
+## Sub-Agent Invocation — Tactical Mechanism
+
+Meta-Harness is the **policy layer** (when to isolate, when to learn). Sub-agents are the **tactical mechanism** (how to isolate). The two are orthogonal: invoking sub-agents does not violate the single-agent principle as long as no `.claude/agents/` definition files or persistent multi-persona orchestrators are created. Sub-agents are tools, not teammates.
+
+### Three trigger categories
+
+| Trigger | Mechanism | When |
+|---------|-----------|------|
+| **Qualitative multi-perspective judgment** | `multi-review` skill (parallel critics with role separation) | Hard-to-reverse decisions, regressions with suspected confounders, domains where single-perspective evaluation has failed before |
+| **Parallel independent exploration** | Multiple `Explore` sub-agents in one message | Comparing 2+ libraries / hypotheses / approaches where each branch is independent and would otherwise serialize |
+| **Context firewall** | Generic sub-agent (Explore or task-specific) | Investigations expected to consume large context (long log analysis, deep codebase walks) where the parent only needs the conclusion |
+
+### Rules
+- **Independence**: parallel sub-agents must not share intermediate results — independence is the source of value, contamination kills it
+- **No orchestrator persistence**: sub-agents are spawned per-task and discarded. Do not create `.claude/agents/` definition files
+- **Conclusion-only return**: sub-agents return distilled findings, not raw transcripts — the firewall is the point
+- **Trigger threshold**: prefer over-invoking these mechanisms to under-invoking them. The cost of an unnecessary sub-agent call is small; the cost of a contaminated decision or context-rotted parent is large
+
+### Anti-patterns
+- Spawning sub-agents for trivial tasks (3-line edits, single-file reads)
+- Using sub-agents to "split work" without independence (sequential dependencies → use the parent agent)
+- Creating named persistent agents (Reviewer, Architect, Tester) — this is multi-persona collaboration, not Meta-Harness
+
 ## Feedback Loop — Evolution Protocol
 
 ### Failure → Trace Recording → Rule Addition Loop

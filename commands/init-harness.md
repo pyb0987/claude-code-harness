@@ -81,6 +81,7 @@ Write or enhance project CLAUDE.md:
    - traces/ structure
    - **Change strategy**: Additive first -> Subtractive -> Structural (one at a time, confounding variable isolation)
    - **Failure escalation loop**: a `resolved: true` entry in `traces/failures/*.md` must satisfy at least one of — (a) `escalated_to` is not empty (absorbed into CLAUDE.md / hook / tool), (b) an active search-set guard for the same pattern exists. If neither holds, do not mark it resolved
+   - **Sub-agent triggers**: reference docs/methodology.md "Sub-Agent Invocation" — three categories (multi-review for qualitative judgment, parallel Explore for independent exploration, generic sub-agent for context firewall). Prefer over-invoking to under-invoking
    - Protected files (if applicable)
 
 #### Additional Requirements for Autoresearch Projects
@@ -203,6 +204,19 @@ Skills are "how to" documents, not agent definitions.
 - Include Anti-patterns section (prohibited patterns learned from past failures)
 - Debug with 3-5 short test iterations before production runs
 
+### Step 6.5: Verify Multi-Review Skill Availability
+
+Check whether `multi-review` is installed as a global skill at `~/.claude/skills/multi-review/SKILL.md`.
+
+- **If installed**: confirmed. The harness can invoke `/multi-review` for qualitative multi-perspective decisions.
+- **If missing**: instruct the user to copy it from this repository:
+  ```bash
+  cp -r {repo}/skills/multi-review ~/.claude/skills/multi-review
+  ```
+  Multi-review is a **global dependency**, not a per-project install. It is shipped in this repo as the source of truth so that the methodology is self-contained, but it is consumed from the global skill location.
+
+Rationale: multi-review is the tactical mechanism for the "qualitative multi-perspective judgment" trigger documented in docs/methodology.md "Sub-Agent Invocation". Without it, that trigger has no implementation.
+
 ### Step 7: Write Evolution Log
 
 After all components (CLAUDE.md, hooks, skills) are confirmed, write the initial evolution log:
@@ -221,7 +235,8 @@ All items below must pass for init-harness to be complete:
 - [ ] (autoresearch projects) `traces/experiments/` episode format documented (ref: reference.md Section 1)
 - [ ] (autoresearch projects) Evaluator protection hooks installed (protect-files.sh + Bash bypass blocking)
 - [ ] `traces/evolution/001-initial-harness.md` written (Step 7)
-- [ ] CLAUDE.md includes Harness section (hooks, traces/, change strategy)
+- [ ] CLAUDE.md includes Harness section (hooks, traces/, change strategy, sub-agent triggers)
+- [ ] Multi-review skill availability verified (`~/.claude/skills/multi-review/SKILL.md` exists, or user instructed to install from `{repo}/skills/multi-review/`)
 - [ ] CLAUDE.md within 100 lines (split to docs/ complete if exceeded)
 - [ ] Hooks registered in `settings.local.json`
 - [ ] `.claude/agents/` directory was NOT created
@@ -234,7 +249,7 @@ All items below must pass for init-harness to be complete:
 
 - Start with minimal viable harness — incrementally strengthen via feedback loop
 - Include only "agent will fail without this", not "nice to have"
-- **Do NOT create agent teams/orchestrators/agent definition files (.claude/agents/)** — Meta-Harness focuses on single-agent environment optimization. Subagents (evaluator, explore, etc.) are allowed for context isolation — this is single-agent tool usage, not multi-persona collaboration
+- **Do NOT create agent teams/orchestrators/agent definition files (.claude/agents/)** — Meta-Harness focuses on single-agent environment optimization. Subagents (evaluator, explore, multi-review critics, etc.) are allowed for context isolation and tactical decision support — this is single-agent tool usage, not multi-persona collaboration. See docs/methodology.md "Sub-Agent Invocation" for the three trigger categories
 - Achieve full coverage via hooks + explicit done conditions. Avoid over-installing hooks
 
 ## Hook Configuration Example (settings.local.json)
