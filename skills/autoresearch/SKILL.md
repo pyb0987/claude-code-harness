@@ -171,24 +171,41 @@ Add a `PreToolUse Bash` hook to also block write commands like `cp`, `mv`, `sed 
 2. Add all imported project modules to the protection list
 3. Include data files (prevent direct modification)
 
-**Canonical `.claude/hooks/protect-files.sh` template** (customize PROTECTED_FILES per project):
+> **Dependency**: both canonical templates use `jq` for JSON parsing of `$CLAUDE_TOOL_INPUT`. Naive regex extraction (`grep -oE '"command"\s*:\s*"[^"]*"'`) is **broken** — it halts at the first escaped quote inside a JSON string and silently truncates commands like `echo \"x\" > evaluate.py` or `python -c "open('evaluate.py','w')..."`, allowing bypass. Install jq (`brew install jq` / `apt install jq`) before enabling these hooks. If jq is unavailable, fail closed: have the hook `exit 1` with a "jq missing" error rather than running a fragile regex fallback.
+
+**Canonical `.claude/hooks/protect-files.sh` template** (customize PROTECTED_BASENAMES per project):
 ```bash
 #!/bin/bash
 # protect-files.sh — block Edit/Write on evaluator + dependencies
 # Invoked by PreToolUse hook with $CLAUDE_TOOL_INPUT JSON.
 
-PROTECTED_FILES=(
+command -v jq >/dev/null || { echo "BLOCKED: jq required for protect-files.sh" >&2; exit 1; }
+
+# Match by exact basename or exact relative path. Avoid bare 'evaluate.py' as a
+# suffix glob — that would also block 'notevaluate.py'.
+PROTECTED_BASENAMES=(
   "evaluate.py"
-  # Add evaluator dependencies discovered by tracing imports, e.g.:
+  # "metric.py"
+)
+PROTECTED_PATHS=(
   # "lib/metric.py"
   # "data/baseline.json"
 )
 
-FILE_PATH=$(echo "$CLAUDE_TOOL_INPUT" | grep -oE '"file_path"\s*:\s*"[^"]+"' | sed 's/.*"file_path"\s*:\s*"\([^"]*\)".*/\1/')
+FILE_PATH=$(echo "$CLAUDE_TOOL_INPUT" | jq -r '.file_path // empty')
+[ -z "$FILE_PATH" ] && exit 0
 
-for protected in "${PROTECTED_FILES[@]}"; do
-  if [[ "$FILE_PATH" == *"$protected" ]]; then
-    echo "BLOCKED: $protected is an evaluator file. Modifying it would contaminate self-evaluation." >&2
+BASENAME=$(basename "$FILE_PATH")
+for b in "${PROTECTED_BASENAMES[@]}"; do
+  if [ "$BASENAME" = "$b" ]; then
+    echo "BLOCKED: $b is an evaluator file. Modifying it would contaminate self-evaluation." >&2
+    exit 1
+  fi
+done
+for p in "${PROTECTED_PATHS[@]}"; do
+  # Match exact path or path-suffix anchored on '/'
+  if [ "$FILE_PATH" = "$p" ] || [[ "$FILE_PATH" == */"$p" ]]; then
+    echo "BLOCKED: $p is a protected evaluator dependency." >&2
     exit 1
   fi
 done
@@ -201,15 +218,19 @@ exit 0
 # protect-files-bash.sh — block write commands targeting protected files via Bash.
 # Catches cp, mv, sed -i, tee, python -c "open(...,'w')", echo > redirects.
 
+command -v jq >/dev/null || { echo "BLOCKED: jq required for protect-files-bash.sh" >&2; exit 1; }
+
 PROTECTED_PATTERNS=(
   "evaluate\.py"
-  # Mirror PROTECTED_FILES from protect-files.sh
+  # Mirror basenames/paths from protect-files.sh
 )
 
-COMMAND=$(echo "$CLAUDE_TOOL_INPUT" | grep -oE '"command"\s*:\s*"[^"]*"' | sed 's/.*"command"\s*:\s*"\(.*\)"/\1/')
+# jq -r '.command' correctly handles JSON-escaped quotes inside the command string.
+COMMAND=$(echo "$CLAUDE_TOOL_INPUT" | jq -r '.command // empty')
+[ -z "$COMMAND" ] && exit 0
 
 # Detect write-intent verbs targeting protected patterns
-WRITE_VERBS='(cp |mv |sed -i|tee |>|>>|python -c .*open\([^)]*,[^)]*["\x27]w)'
+WRITE_VERBS='(\bcp\b|\bmv\b|sed -i|\btee\b|>|>>|python.* -c .*open\([^)]*,[^)]*["\x27]w)'
 for pattern in "${PROTECTED_PATTERNS[@]}"; do
   if echo "$COMMAND" | grep -qE "$WRITE_VERBS" && echo "$COMMAND" | grep -qE "$pattern"; then
     echo "BLOCKED: write command targets protected evaluator file ($pattern)." >&2
@@ -219,7 +240,7 @@ done
 exit 0
 ```
 
-Install both hooks (`chmod +x` after writing) and register in `.claude/settings.local.json`.
+Install both hooks (`chmod +x` after writing) and register in `.claude/settings.local.json`. Verify protection with a smoke test before enabling: run `CLAUDE_TOOL_INPUT='{"command":"echo \"x\" > evaluate.py"}' bash .claude/hooks/protect-files-bash.sh; echo $?` and confirm exit 1 (BLOCKED).
 
 **Idempotency rules** (re-entry on already-harnessed projects like chain-army):
 - **`.claude/hooks/protect-files.sh` already exists**: read it, compare against the canonical template above. If identical (modulo PROTECTED_FILES customization), skip. If differs structurally, show the diff and prompt the user before any change. Never silently overwrite.

@@ -169,11 +169,11 @@ Check whether `multi-review` is installed as a global skill at `~/.claude/skills
 
   **Path B — fresh install** (no local checkout of claude-code-harness):
   ```bash
-  # Clone the harness repo to a stable location (e.g., ~/code/claude-code-harness)
-  git clone https://github.com/<owner>/claude-code-harness.git ~/code/claude-code-harness
+  # Replace the URL with the upstream repo or your own fork
+  git clone <claude-code-harness-git-url> ~/code/claude-code-harness
   cp -r ~/code/claude-code-harness/skills/multi-review ~/.claude/skills/multi-review
   ```
-  (The repository owner/URL should be filled in by the user from the README or their own fork.)
+  If you do not know the URL, ask the user — there is no hardcoded upstream because forks are expected. The repo containing this very `init-harness.md` is the source of truth.
 
   Multi-review is a **global dependency**, not a per-project install. It is shipped in this repo as the source of truth so the methodology is self-contained, but it is consumed from the global skill location. After install, verify with `ls ~/.claude/skills/multi-review/SKILL.md`.
 
@@ -216,6 +216,8 @@ All items below must pass for init-harness to be complete:
 
 This example shows generic init-harness hooks only. **Evaluator protection hooks (`protect-files.sh`, `protect-files-bash.sh`) are NOT installed by init-harness** — they are installed by `/autoresearch` Setup Mode Step 6 when (and only when) the project adopts the Fixed Evaluator pattern. See the forward-reference Note in Step 3 above.
 
+The hook script referenced below (e.g., `tsc-check.sh`) is illustrative — substitute the actual command you select from the Hook Recipe in Step 5 (`tsc --noEmit`, `mypy`, `pytest`, etc.). Generate the script next to `settings.local.json` under `.claude/hooks/`.
+
 ```json
 {
   "hooks": {
@@ -225,7 +227,7 @@ This example shows generic init-harness hooks only. **Evaluator protection hooks
         "hooks": [
           {
             "type": "command",
-            "command": "bash .claude/hooks/auto-format.sh",
+            "command": "bash .claude/hooks/tsc-check.sh",
             "timeout": 10000
           }
         ]
