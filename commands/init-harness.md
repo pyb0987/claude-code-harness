@@ -59,14 +59,9 @@ Update last_updated when adding/removing items.
 - Python: `pytest -x -q 2>&1 | tail -5; echo "EXIT: $?"`
 - Godot: `godot --headless --path . -s addons/gut/gut_cmdln.gd -gdir=res://tests/ -glog=1 -gexit 2>&1 | tail -10`
 
-#### Autoresearch Projects: Raw Output Preservation
-
-evaluate.py's JSON stdout is critical diagnostic material. Preserve originals, not summaries:
-- `experiments.jsonl`: record each experiment's full JSON output as 1 line (machine parseable)
-- `traces/experiments/NNN-*.md`: include representative experiments' raw output in episode traces
-- Preserve: verdict, score, gates, metrics in full — no selective field omission
-
 **Evolution log is written in Step 7** (recorded after all components are confirmed).
+
+> **Note**: Autoresearch-specific layer (evaluator protection hooks, autoresearch CLAUDE.md section, experiments/ episode format documentation, raw output preservation) is **not** installed by init-harness. It is installed by `/autoresearch` Setup Mode when (and only when) the user adopts the Fixed Evaluator pattern. This separation lets a project add autoresearch later without re-running init-harness, and keeps init-harness universal.
 
 ### Step 4: Write/Enhance CLAUDE.md
 
@@ -83,15 +78,6 @@ Write or enhance project CLAUDE.md:
    - **Failure escalation loop**: a `resolved: true` entry in `traces/failures/*.md` must satisfy at least one of — (a) `escalated_to` is not empty (absorbed into CLAUDE.md / hook / tool), (b) an active search-set guard for the same pattern exists. If neither holds, do not mark it resolved
    - **Sub-agent triggers**: reference docs/methodology.md "Sub-Agent Invocation" — three categories (multi-review for qualitative judgment, parallel Explore for independent exploration, generic sub-agent for context firewall). Prefer over-invoking to under-invoking
    - Protected files (if applicable)
-
-#### Additional Requirements for Autoresearch Projects
-
-For projects using the Fixed Evaluator pattern, CLAUDE.md must specify:
-
-- **Evaluator output schema**: JSON stdout key list and verdict values (agent must parse)
-- **Mutable/immutable file boundary**: evaluator + dependencies = IMMUTABLE, genome = MUTABLE
-- **Trace recording timing**: record immediately on ADOPT, axis exhaustion, every 10 experiments, termination
-- **Trace YAML frontmatter required fields**: session, date, experiment_range, adopts, rejects, metric_start, metric_end
 
 ### Step 5: Configure Hooks
 
@@ -146,42 +132,6 @@ Hook coverage priority:
 3. **Lint/format**: style consistency (only for projects with linters)
 4. **Doc-code sync**: code change doc verification alerts for projects with master documents
 
-#### Evaluator Protection Hooks (required for autoresearch projects)
-
-For projects using the Fixed Evaluator pattern, the **entire evaluator dependency chain** must be protected.
-Paper principle: "The proposer never sees test-set results; its only feedback comes from the search set."
-
-**Protection scope**: evaluator file itself + all dependencies it imports.
-Protecting only the evaluator while leaving dependencies unguarded allows manipulating evaluation results via dependency modification.
-
-**Bash tool bypass blocking**: `PreToolUse Edit|Write` alone is insufficient.
-Add a `PreToolUse Bash` hook to also block write commands like `cp`, `mv`, `sed -i`, `python -c "open(...,'w')"` targeting protected files.
-
-```
-protect-files.sh protection target determination:
-1. Trace import statements in the evaluator file
-2. Add all imported project modules to the protection list
-3. Include data files (prevent direct modification)
-```
-
-settings.local.json example (with Bash bypass blocking):
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [{"type": "command", "command": "bash .claude/hooks/protect-files.sh"}]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [{"type": "command", "command": "bash .claude/hooks/protect-files-bash.sh"}]
-      }
-    ]
-  }
-}
-```
-
 ### Step 6: Domain Skill Decision
 
 Determine whether the project needs domain expertise.
@@ -232,8 +182,6 @@ All items below must pass for init-harness to be complete:
 
 - [ ] `.claude/traces/{evolution,failures,experiments}/` directories exist
 - [ ] `traces/search-set.md` template created
-- [ ] (autoresearch projects) `traces/experiments/` episode format documented (ref: reference.md Section 1)
-- [ ] (autoresearch projects) Evaluator protection hooks installed (protect-files.sh + Bash bypass blocking)
 - [ ] `traces/evolution/001-initial-harness.md` written (Step 7)
 - [ ] CLAUDE.md includes Harness section (hooks, traces/, change strategy, sub-agent triggers)
 - [ ] Multi-review skill availability verified (`~/.claude/skills/multi-review/SKILL.md` exists, or user instructed to install from `{repo}/skills/multi-review/`)

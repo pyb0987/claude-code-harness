@@ -150,6 +150,77 @@ fi
 #### Step 5: Initialize experiments.jsonl
 Create empty file. First experiment is n=1.
 
+**Raw output preservation**: evaluate.py's JSON stdout is critical diagnostic material. Preserve originals, not summaries:
+- `experiments.jsonl`: record each experiment's full JSON output as 1 line (machine parseable)
+- `traces/experiments/NNN-*.md`: include representative experiments' raw output in episode traces
+- Preserve verdict, score, gates, metrics in full — no selective field omission
+
+#### Step 6: Install Evaluator Protection Hooks
+
+The Fixed Evaluator pattern requires protecting the **entire evaluator dependency chain**.
+Paper principle: "The proposer never sees test-set results; its only feedback comes from the search set."
+
+**Protection scope**: evaluator file itself + all dependencies it imports.
+Protecting only the evaluator while leaving dependencies unguarded allows manipulating evaluation results via dependency modification.
+
+**Bash tool bypass blocking**: `PreToolUse Edit|Write` alone is insufficient.
+Add a `PreToolUse Bash` hook to also block write commands like `cp`, `mv`, `sed -i`, `python -c "open(...,'w')"` targeting protected files.
+
+```
+protect-files.sh protection target determination:
+1. Trace import statements in the evaluator file
+2. Add all imported project modules to the protection list
+3. Include data files (prevent direct modification)
+```
+
+Install both hooks and register in `.claude/settings.local.json`. **Idempotency**: if `.claude/hooks/protect-files.sh` already exists, do not overwrite — read first, diff against the canonical version, and prompt the user before any changes. If `settings.local.json` already exists, merge into the existing `hooks.PreToolUse` array instead of replacing it.
+
+settings.local.json fragment to merge:
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [{"type": "command", "command": "bash .claude/hooks/protect-files.sh"}]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [{"type": "command", "command": "bash .claude/hooks/protect-files-bash.sh"}]
+      }
+    ]
+  }
+}
+```
+
+#### Step 7: Add Autoresearch Section to CLAUDE.md
+
+Append (or merge into existing) an Autoresearch section to the project CLAUDE.md. This section must specify:
+
+- **Evaluator output schema**: JSON stdout key list and verdict values (agent must parse)
+- **Mutable/immutable file boundary**: evaluator + dependencies = IMMUTABLE, genome = MUTABLE
+- **Trace recording timing**: record immediately on ADOPT, axis exhaustion, every 10 experiments, termination
+- **Trace YAML frontmatter required fields**: session, date, experiment_range, adopts, rejects, metric_start, metric_end
+- **Reject code preservation**: before reverting on REJECT, capture `git diff HEAD~1` into the failures/ trace when recording triggers apply (see methodology.md)
+
+**Idempotency**: if CLAUDE.md already contains an "Autoresearch" heading, merge new bullets only. Do not duplicate. If the 100-line CLAUDE.md cap is exceeded, split the autoresearch section to `docs/autoresearch.md` and leave a one-line reference in CLAUDE.md.
+
+#### Step 8: Document Episode Format
+
+Ensure `.claude/traces/experiments/` exists (created by `/init-harness`; create now if missing) and verify that the episode format from `docs/reference.md` "Experiment Episode Format" section is referenced from CLAUDE.md or a project doc. The agent must know where to find the format when writing episodes.
+
+#### Setup Completion Checklist
+
+Before exiting Setup Mode, verify:
+- [ ] evaluate.py written, immutable boundary documented
+- [ ] program.md written with rejection history section
+- [ ] auto-search.sh launcher exists
+- [ ] experiments.jsonl initialized (empty)
+- [ ] `.claude/hooks/protect-files.sh` and `protect-files-bash.sh` installed
+- [ ] `.claude/settings.local.json` has both hooks registered (PreToolUse Edit|Write + PreToolUse Bash)
+- [ ] CLAUDE.md has Autoresearch section (output schema, mutable/immutable boundary, trace timing, frontmatter fields, reject preservation)
+- [ ] `.claude/traces/experiments/` exists and episode format is referenced
+
 #### Reference
 See the examples/ directory for a reference implementation.
 
