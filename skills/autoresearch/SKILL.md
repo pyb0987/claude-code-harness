@@ -166,31 +166,80 @@ Protecting only the evaluator while leaving dependencies unguarded allows manipu
 **Bash tool bypass blocking**: `PreToolUse Edit|Write` alone is insufficient.
 Add a `PreToolUse Bash` hook to also block write commands like `cp`, `mv`, `sed -i`, `python -c "open(...,'w')"` targeting protected files.
 
-```
-protect-files.sh protection target determination:
+**Protection target determination**:
 1. Trace import statements in the evaluator file
 2. Add all imported project modules to the protection list
 3. Include data files (prevent direct modification)
+
+**Canonical `.claude/hooks/protect-files.sh` template** (customize PROTECTED_FILES per project):
+```bash
+#!/bin/bash
+# protect-files.sh — block Edit/Write on evaluator + dependencies
+# Invoked by PreToolUse hook with $CLAUDE_TOOL_INPUT JSON.
+
+PROTECTED_FILES=(
+  "evaluate.py"
+  # Add evaluator dependencies discovered by tracing imports, e.g.:
+  # "lib/metric.py"
+  # "data/baseline.json"
+)
+
+FILE_PATH=$(echo "$CLAUDE_TOOL_INPUT" | grep -oE '"file_path"\s*:\s*"[^"]+"' | sed 's/.*"file_path"\s*:\s*"\([^"]*\)".*/\1/')
+
+for protected in "${PROTECTED_FILES[@]}"; do
+  if [[ "$FILE_PATH" == *"$protected" ]]; then
+    echo "BLOCKED: $protected is an evaluator file. Modifying it would contaminate self-evaluation." >&2
+    exit 1
+  fi
+done
+exit 0
 ```
 
-Install both hooks and register in `.claude/settings.local.json`. **Idempotency**: if `.claude/hooks/protect-files.sh` already exists, do not overwrite — read first, diff against the canonical version, and prompt the user before any changes. If `settings.local.json` already exists, merge into the existing `hooks.PreToolUse` array instead of replacing it.
+**Canonical `.claude/hooks/protect-files-bash.sh` template** (blocks Bash bypass):
+```bash
+#!/bin/bash
+# protect-files-bash.sh — block write commands targeting protected files via Bash.
+# Catches cp, mv, sed -i, tee, python -c "open(...,'w')", echo > redirects.
 
-settings.local.json fragment to merge:
+PROTECTED_PATTERNS=(
+  "evaluate\.py"
+  # Mirror PROTECTED_FILES from protect-files.sh
+)
+
+COMMAND=$(echo "$CLAUDE_TOOL_INPUT" | grep -oE '"command"\s*:\s*"[^"]*"' | sed 's/.*"command"\s*:\s*"\(.*\)"/\1/')
+
+# Detect write-intent verbs targeting protected patterns
+WRITE_VERBS='(cp |mv |sed -i|tee |>|>>|python -c .*open\([^)]*,[^)]*["\x27]w)'
+for pattern in "${PROTECTED_PATTERNS[@]}"; do
+  if echo "$COMMAND" | grep -qE "$WRITE_VERBS" && echo "$COMMAND" | grep -qE "$pattern"; then
+    echo "BLOCKED: write command targets protected evaluator file ($pattern)." >&2
+    exit 1
+  fi
+done
+exit 0
+```
+
+Install both hooks (`chmod +x` after writing) and register in `.claude/settings.local.json`.
+
+**Idempotency rules** (re-entry on already-harnessed projects like chain-army):
+- **`.claude/hooks/protect-files.sh` already exists**: read it, compare against the canonical template above. If identical (modulo PROTECTED_FILES customization), skip. If differs structurally, show the diff and prompt the user before any change. Never silently overwrite.
+- **`.claude/hooks/protect-files-bash.sh` already exists**: same rule.
+- **`.claude/settings.local.json` does not exist**: create with the fragment below as the full content.
+- **`.claude/settings.local.json` exists but has no `hooks.PreToolUse` array**: add a new `PreToolUse` array containing the two entries below, while preserving any existing `PostToolUse` or other top-level keys.
+- **`.claude/settings.local.json` exists with a `hooks.PreToolUse` array**: append the two entries below to that array. Skip any entry whose `command` already matches (idempotent).
+
+Fragment to merge into `hooks.PreToolUse`:
 ```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [{"type": "command", "command": "bash .claude/hooks/protect-files.sh"}]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [{"type": "command", "command": "bash .claude/hooks/protect-files-bash.sh"}]
-      }
-    ]
+[
+  {
+    "matcher": "Edit|Write",
+    "hooks": [{"type": "command", "command": "bash .claude/hooks/protect-files.sh"}]
+  },
+  {
+    "matcher": "Bash",
+    "hooks": [{"type": "command", "command": "bash .claude/hooks/protect-files-bash.sh"}]
   }
-}
+]
 ```
 
 #### Step 7: Add Autoresearch Section to CLAUDE.md

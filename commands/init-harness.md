@@ -159,11 +159,23 @@ Skills are "how to" documents, not agent definitions.
 Check whether `multi-review` is installed as a global skill at `~/.claude/skills/multi-review/SKILL.md`.
 
 - **If installed**: confirmed. The harness can invoke `/multi-review` for qualitative multi-perspective decisions.
-- **If missing**: instruct the user to copy it from this repository:
+- **If missing**: instruct the user to install it. Two paths:
+
+  **Path A — claude-code-harness already cloned locally** (the typical case if the user is running /init-harness from this very repo):
   ```bash
-  cp -r {repo}/skills/multi-review ~/.claude/skills/multi-review
+  # Replace HARNESS_REPO with the path to your local claude-code-harness checkout
+  cp -r HARNESS_REPO/skills/multi-review ~/.claude/skills/multi-review
   ```
-  Multi-review is a **global dependency**, not a per-project install. It is shipped in this repo as the source of truth so that the methodology is self-contained, but it is consumed from the global skill location.
+
+  **Path B — fresh install** (no local checkout of claude-code-harness):
+  ```bash
+  # Clone the harness repo to a stable location (e.g., ~/code/claude-code-harness)
+  git clone https://github.com/<owner>/claude-code-harness.git ~/code/claude-code-harness
+  cp -r ~/code/claude-code-harness/skills/multi-review ~/.claude/skills/multi-review
+  ```
+  (The repository owner/URL should be filled in by the user from the README or their own fork.)
+
+  Multi-review is a **global dependency**, not a per-project install. It is shipped in this repo as the source of truth so the methodology is self-contained, but it is consumed from the global skill location. After install, verify with `ls ~/.claude/skills/multi-review/SKILL.md`.
 
 Rationale: multi-review is the tactical mechanism for the "qualitative multi-perspective judgment" trigger documented in docs/methodology.md "Sub-Agent Invocation". Without it, that trigger has no implementation.
 
@@ -202,6 +214,8 @@ All items below must pass for init-harness to be complete:
 
 ## Hook Configuration Example (settings.local.json)
 
+This example shows generic init-harness hooks only. **Evaluator protection hooks (`protect-files.sh`, `protect-files-bash.sh`) are NOT installed by init-harness** — they are installed by `/autoresearch` Setup Mode Step 6 when (and only when) the project adopts the Fixed Evaluator pattern. See the forward-reference Note in Step 3 above.
+
 ```json
 {
   "hooks": {
@@ -213,18 +227,6 @@ All items below must pass for init-harness to be complete:
             "type": "command",
             "command": "bash .claude/hooks/auto-format.sh",
             "timeout": 10000
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash .claude/hooks/protect-files.sh",
-            "timeout": 5000
           }
         ]
       }
