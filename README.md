@@ -10,8 +10,9 @@ Meta-Harness demonstrated that **the environment around an LLM matters as much a
 |-----------|-------------|------|
 | **Methodology** | Core principles loaded every session | `docs/methodology.md` |
 | **Reference** | Detailed trace formats, analysis workflows | `docs/reference.md` |
-| **autoresearch** | Autonomous experiment loop (Karpathy pattern) | `skills/autoresearch/` |
+| **autoresearch** | Autonomous experiment loop (Karpathy pattern) — invoke with `/autoresearch` | `skills/autoresearch/` |
 | **harness-engineer** | Failure diagnosis + harness evolution | `skills/harness-engineer/` |
+| **multi-review** | Parallel independent critics for high-stakes decisions — invoke with `/multi-review` | `skills/multi-review/` |
 | **init-harness** | Project harness bootstrap command | `commands/init-harness.md` |
 
 ## Core Principles
@@ -44,7 +45,8 @@ cp docs/methodology.md ~/.claude/rules/common/harness-methodology.md
 mkdir -p ~/.claude/docs
 cp docs/reference.md ~/.claude/docs/harness-reference.md
 
-# Copy skills (autoresearch + harness-engineer)
+# Copy skills (autoresearch + harness-engineer + multi-review)
+# multi-review is a *global* dependency consumed from ~/.claude/skills/multi-review/
 cp -r skills/* ~/.claude/skills/
 
 # Copy commands
@@ -61,7 +63,8 @@ After installation, your `~/.claude/` should include:
 │   └── harness-reference.md      # Detailed reference (on-demand)
 ├── skills/
 │   ├── autoresearch/SKILL.md
-│   └── harness-engineer/SKILL.md
+│   ├── harness-engineer/SKILL.md
+│   └── multi-review/SKILL.md
 └── commands/
     └── init-harness.md
 ```
@@ -111,6 +114,18 @@ claude "/init-harness"
 4. Fix applied → recorded in traces/evolution/
 5. Harness gradually improves over time
 ```
+
+### Multi-review flow (for high-stakes or multi-perspective decisions)
+
+```
+1. /multi-review → frame the decision (what, stakes, constraints, input)
+2. Design 2-4 disjoint critics on the spot (each with explicit scope + anti-scope)
+3. Run critics in parallel as independent sub-agents (no result sharing)
+4. Convergence check → PASS / VETO / MIXED → Synthesis if needed
+5. Present table + final verdict; user retains final decision authority
+```
+
+Multi-review is the tactical mechanism for the *qualitative multi-perspective judgment* trigger documented in `docs/methodology.md` "Sub-Agent Invocation". Use it for hard-to-reverse decisions, regressions with suspected confounders, and domains where single-perspective evaluation has missed things before. Iterations 2+ require a Convergence vs Drift meta-critic to detect mechanism-on-mechanism stacking.
 
 ### Autoresearch flow (for optimization tasks)
 
