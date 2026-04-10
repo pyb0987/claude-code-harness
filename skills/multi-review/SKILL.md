@@ -51,9 +51,10 @@ Critic N: [name]
 ```
 
 **Model assignment criteria**:
-- Deep analysis / judgment → opus or sonnet
-- Checklist / format verification → haiku
-- Default: sonnet (cost-quality balance)
+- High-stakes / complex judgment (architecture, strategy, irreversible decisions) → **opus**
+- Standard analysis / code review → **sonnet**
+- Checklist / format verification (binary pass/fail only) → **haiku**
+- Default: **sonnet**
 
 ### Phase 3: Parallel Execution
 

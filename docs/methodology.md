@@ -99,6 +99,19 @@ This is why Meta-Harness can absorb multi-agent benefits without abandoning the 
 - **Conclusion-only return**: sub-agents return distilled findings, not raw transcripts — the firewall is the point
 - **Trigger threshold**: prefer over-invoking these mechanisms to under-invoking them. The cost of an unnecessary sub-agent call is small; the cost of a contaminated decision or context-rotted parent is large
 
+### Model routing
+Explicitly set the `model` parameter when spawning sub-agents:
+
+| Task type | Model | Examples |
+|-----------|-------|---------|
+| Complex judgment, architecture, irreversible decisions | **opus** | High-stakes multi-review critics, design validation, strategy decisions |
+| Standard analysis, exploration, implementation | **sonnet** | Explore agents, code review, standard evaluators, routine critics |
+| Mechanical verification (no judgment needed) | **haiku** | Binary pass/fail checks, format validation, file existence checks |
+
+- Default: **sonnet** (when model is omitted)
+- Use haiku only for judgment-free mechanical checks
+- When uncertain, choose sonnet over haiku (slight cost increase beats quality loss)
+
 ### Anti-patterns
 - Spawning sub-agents for trivial tasks (3-line edits, single-file reads)
 - Using sub-agents to "split work" without independence (sequential dependencies → use the parent agent)
