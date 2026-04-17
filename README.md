@@ -46,21 +46,8 @@ The installer separates the harness into two layers:
   is seeded once from `docs/operations-template.md`. The installer never
   overwrites this file. Put your personal operational rules here.
 
-**Important — auto-load requires CLAUDE.md registration.** A file living in
-`~/.claude/rules/common/` is not auto-loaded by itself. Claude Code uses
-`~/.claude/CLAUDE.md` as the manifest telling it which rules files to inject
-into each session. After install, add a Harness section to your CLAUDE.md
-(the installer prints exactly this snippet at the end of its run):
-
-```markdown
-## Harness
-- Core principles: ~/.claude/rules/common/harness-methodology.md (auto-loaded)
-- User overlay:    ~/.claude/rules/common/harness-operations.md (auto-loaded)
-```
-
-Both paths must be referenced; missing `harness-operations.md` means the
-overlay file exists on disk but never reaches the session, defeating the
-upstream-vs-overlay separation.
+Both files are auto-loaded every session, so extensions accumulate in the
+overlay without mutating the upstream anchor.
 
 After installation, your `~/.claude/` should include:
 ```
