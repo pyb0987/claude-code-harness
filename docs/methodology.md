@@ -72,6 +72,36 @@ Key finding from Meta-Harness experiments:
 - Rewriting prompts in natural language ("try harder") is noise, not search
 - **Autoresearch application**: directly modify the genome (Python code) to explore performance. Code changes, not natural language instructions
 
+### P5: Recurring failures are absorbed by structure, not rules
+
+> "Don't do this" fails. "Can't do this" succeeds.
+
+When the same failure category repeats, move beyond telling the agent what not to do — make **violation structurally impossible**.
+
+**Escalation ladder** (stronger going down):
+
+| Level | Mechanism | Enforcement | Limitation |
+|-------|-----------|-------------|------------|
+| 0. Rule | CLAUDE.md constraint | Voluntary compliance | Leaks via context rot |
+| 1. Warning | PostToolUse hook (soft) | Reminder | Can be ignored |
+| 2. Block | PreToolUse hook (exit 2) | Direct modification blocked | Bypass routes may exist |
+| 3. **Structural impossibility** | Single Source + Codegen + Protect | **Drift itself is impossible** | Initial setup cost |
+
+**Single Source + Generated Derivatives pattern**:
+```
+Human-editable truth (YAML / schema / config)
+    → Generator (codegen / template / build script)
+        → Derived artifact (code / docs / UI text)
+            → Protection (chmod 444 + blocking hook)
+```
+
+**When to apply**:
+- Same failure category with 3+ evidence items → structural elimination review is mandatory
+- Truth source exists in 2+ places → apply Single Source + Codegen + Protect pattern
+- Only judgment-dependent domains (aesthetics, trade-offs) should remain as rules
+
+**Self-check**: "Can this failure category be eliminated by structure rather than rules?" If yes, aim for ladder level 3.
+
 ## Sub-Agent Invocation — Tactical Mechanism
 
 Meta-Harness is the **policy layer** (when to isolate, when to learn). Sub-agents are the **tactical mechanism** (how to isolate). The two are orthogonal: invoking sub-agents does not violate the single-agent principle as long as no `.claude/agents/` definition files or persistent multi-persona orchestrators are created. Sub-agents are tools, not teammates.
@@ -122,7 +152,8 @@ Explicitly set the `model` parameter when spawning sub-agents:
 ### Failure → Trace Recording → Rule Addition Loop
 1. Agent fails or repeats the same fix
 2. **Record in traces**: preserve raw context in `.claude/traces/failures/NNN-{name}.md`
-3. Respond: add knowledge to docs, add constraint to CLAUDE.md, or add tooling/hooks as appropriate
+3. **Structural elimination check** (P5): "Can this category be eliminated by structure, not rules?"
+4. Respond: add knowledge to docs, add constraint to CLAUDE.md, add tooling/hooks, or **apply Single Source + Codegen + Protect** (P5 ladder level 3) as appropriate
 4. **Record change in evolution log**: `.claude/traces/evolution/NNN-{name}.md`
 5. **Verify with search-set**: confirm past failures in `.claude/traces/search-set.md` don't recur
 6. Add new failure to search-set if it has verification value
