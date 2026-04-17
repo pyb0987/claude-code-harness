@@ -58,6 +58,16 @@ Key finding from Meta-Harness experiments:
 - → Common factor B is the primary cause
 - **When this pattern is recognized**: separate the changes and evaluate each independently
 
+### Surgical Diff Discipline (within a single edit)
+
+Additive Modification governs change strategy *across iterations*. This rule governs diff shape *within a single edit*:
+
+- **Diff self-check**: after editing, every changed line must trace directly to the user's request. If a line doesn't, remove it.
+- **Pre-existing dead code** (not orphaned by your change) is mentioned, not removed — removal requires explicit request.
+- **No drive-by cleanups**: don't reformat, rename, or "improve" unrelated code while solving a different problem. Bundled cleanups become confounding variables when regressions appear.
+
+Why this sits next to Additive Modification: both stem from the same finding — touching more than necessary introduces confounders. This rule is the single-edit corollary of the multi-iteration principle above.
+
 ## Minimal Outer Loop & Code-Space Search — Design Principles
 
 ### P3: The outer loop must be simple enough to verify by inspection
