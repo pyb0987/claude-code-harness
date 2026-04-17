@@ -1,7 +1,19 @@
 # Harness Operations — User Overlay
 
 This file is the user-editable overlay for the claude-code-harness methodology.
-It is auto-loaded every session alongside `harness-methodology.md`.
+It is **intended** to be auto-loaded every session alongside `harness-methodology.md`.
+
+> ⚠ **Registration required**: auto-load only happens if `~/.claude/CLAUDE.md`
+> references this path. A file in `~/.claude/rules/common/` is not
+> auto-loaded on its own — CLAUDE.md is the manifest. Check that your
+> CLAUDE.md contains a line like:
+>
+> ```
+> - User overlay: ~/.claude/rules/common/harness-operations.md (auto-loaded)
+> ```
+>
+> `./scripts/install.sh` prints this snippet and detects whether your
+> CLAUDE.md already has it.
 
 ## What belongs here
 

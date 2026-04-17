@@ -121,5 +121,51 @@ else
 EOF
 fi
 
+# --- CLAUDE.md auto-load registration: print only, do not auto-edit --------
+# Both methodology.md and operations.md must be referenced from ~/.claude/CLAUDE.md
+# for Claude Code to inject them into each session. The file existing in
+# ~/.claude/rules/common/ is NOT sufficient on its own — CLAUDE.md is the
+# manifest that tells Claude Code which rules files to auto-load.
+CLAUDEMD="${GLOBAL_CLAUDE}/CLAUDE.md"
+METHO_REGISTERED=0
+OPS_REGISTERED=0
+if [ -f "$CLAUDEMD" ]; then
+  grep -q "harness-methodology.md" "$CLAUDEMD" 2>/dev/null && METHO_REGISTERED=1
+  grep -q "harness-operations.md"   "$CLAUDEMD" 2>/dev/null && OPS_REGISTERED=1
+fi
+
+echo
+echo "CLAUDE.md auto-load registration in ${CLAUDEMD}:"
+if [ ! -f "$CLAUDEMD" ]; then
+  cat <<'EOF'
+  ! ~/.claude/CLAUDE.md does not exist. Create it with at minimum:
+
+  ## Harness
+  - Core principles: ~/.claude/rules/common/harness-methodology.md (auto-loaded)
+  - User overlay:    ~/.claude/rules/common/harness-operations.md (auto-loaded)
+
+  Without CLAUDE.md referencing these paths, the files are installed but
+  Claude Code will NOT inject them into sessions. chmod 444 and the protect
+  hooks still apply to the files themselves.
+EOF
+elif [ "$METHO_REGISTERED" = "1" ] && [ "$OPS_REGISTERED" = "1" ]; then
+  ok "both harness-methodology.md and harness-operations.md referenced"
+else
+  echo "  ! incomplete registration:"
+  [ "$METHO_REGISTERED" = "1" ] && ok "harness-methodology.md referenced" || warn "harness-methodology.md NOT referenced"
+  [ "$OPS_REGISTERED" = "1" ]   && ok "harness-operations.md referenced"   || warn "harness-operations.md NOT referenced"
+  cat <<'EOF'
+
+    Add the missing line(s) to ~/.claude/CLAUDE.md. Suggested format:
+
+    ## Harness
+    - Core principles: ~/.claude/rules/common/harness-methodology.md (auto-loaded)
+    - User overlay:    ~/.claude/rules/common/harness-operations.md (auto-loaded)
+
+    A file in ~/.claude/rules/common/ is not auto-loaded by itself; CLAUDE.md
+    is the manifest that tells Claude Code which files to inject each session.
+EOF
+fi
+
 echo
 echo "Done."
