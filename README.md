@@ -30,70 +30,44 @@ All principles come directly from Meta-Harness experiments and ablation studies:
 
 ### Global setup (once)
 
+Copy methodology and reference docs to your Claude Code global config:
+
 ```bash
+# Clone the repo
 git clone https://github.com/pyb0987/claude-code-harness.git
 cd claude-code-harness
-./scripts/install.sh
+
+# Copy core docs (loaded every session)
+mkdir -p ~/.claude/rules/common
+cp docs/methodology.md ~/.claude/rules/common/harness-methodology.md
+
+# Copy reference docs (loaded on demand)
+mkdir -p ~/.claude/docs
+cp docs/reference.md ~/.claude/docs/harness-reference.md
+
+# Copy skills (autoresearch + harness-engineer + multi-review)
+# multi-review is a *global* dependency consumed from ~/.claude/skills/multi-review/
+cp -r skills/* ~/.claude/skills/
+
+# Copy commands
+mkdir -p ~/.claude/commands
+cp commands/init-harness.md ~/.claude/commands/
 ```
-
-The installer separates the harness into two layers:
-
-- **Upstream layer (locked)** — written read-only (`chmod 444`) into `~/.claude`.
-  This is a snapshot of the repo's `docs/` and `skills/`. Re-running the
-  installer updates it; manual edits are discouraged and blocked by the
-  protect-files hook (see below).
-- **User overlay (editable)** — `~/.claude/rules/common/harness-operations.md`
-  is seeded once from `docs/operations-template.md`. The installer never
-  overwrites this file. Put your personal operational rules here.
-
-Both files are auto-loaded every session, so extensions accumulate in the
-overlay without mutating the upstream anchor.
 
 After installation, your `~/.claude/` should include:
 ```
 ~/.claude/
 ├── rules/common/
-│   ├── harness-methodology.md     # Upstream, chmod 444 (auto-loaded)
-│   └── harness-operations.md      # User overlay, editable (auto-loaded)
+│   └── harness-methodology.md    # Core principles (auto-loaded)
 ├── docs/
-│   └── harness-reference.md       # Upstream, chmod 444 (on-demand)
+│   └── harness-reference.md      # Detailed reference (on-demand)
 ├── skills/
 │   ├── autoresearch/SKILL.md
 │   ├── harness-engineer/SKILL.md
 │   └── multi-review/SKILL.md
-├── commands/
-│   └── init-harness.md
-└── hooks/
-    ├── protect-global-methodology.sh       # Blocks Edit/Write on upstream
-    └── protect-global-methodology-bash.sh  # Blocks Bash-based bypass
+└── commands/
+    └── init-harness.md
 ```
-
-### Activate the protect hook
-
-`chmod 444` stops casual edits but not `chmod +w` followed by overwrite. The
-installer prints the hook registration snippet on first run. To close the
-bypass, add to `~/.claude/settings.json`:
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [{"type": "command", "command": "bash ~/.claude/hooks/protect-global-methodology.sh"}]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [{"type": "command", "command": "bash ~/.claude/hooks/protect-global-methodology-bash.sh"}]
-      }
-    ]
-  }
-}
-```
-
-This enforces P5 ladder level 3 on the methodology snapshot itself: editing
-the upstream file becomes structurally impossible, not merely discouraged.
-See `traces/evolution/002-self-apply-p5-to-methodology.md` for the rationale.
 
 ### Per-project setup
 
