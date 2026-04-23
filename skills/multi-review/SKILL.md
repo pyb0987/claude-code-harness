@@ -29,8 +29,22 @@ Structure the decision under review:
 Decision: [what is being decided]
 Stakes: [what is the cost if it goes wrong]
 Constraints: [already-fixed constraints]
+Presuppositions: [what this question silently assumes — list 2-3 items]
 Input: [materials to pass to the Critics]
 ```
+
+**About Presuppositions (required, not optional)**:
+
+A question's presuppositions are claims it treats as given without evaluating. Critics narrowly scoped around the decision will leave these unexamined, allowing flawed premises to reach verdicts unchallenged. Surface them here before critic design.
+
+Examples:
+- "Which benchmark should we use?" — presupposes we need a benchmark at all
+- "What's the best storage schema?" — presupposes we need persistent storage
+- "How should we structure the plugin API?" — presupposes plugins are the right abstraction
+
+Rule: include at least one critic whose scope is "evaluate whether one of the listed presuppositions is actually warranted," OR explicitly allow all critics in their prompt to flag "the question itself is wrongly framed" as a valid verdict.
+
+If Phase 1's Presuppositions block is empty or vague, Phase 2 critic design is incomplete — critics will optimize within the presupposed frame and systematically miss frame-level errors. This is the canonical failure mode of multi-review: N iterations of "which option is best?" when the question itself was wrong.
 
 ### Phase 2: Critic Design (Dynamic)
 
@@ -147,3 +161,4 @@ Learning feedback recording paths:
 - Ignoring user decision authority (Critic consensus ≠ final decision)
 - **Iteration drift**: when iterating on the same problem 3+ times, if complexity (number of changes / number of mechanisms) is increasing, that is divergence, not convergence. Stop the mechanism-on-mechanism stacking and revert to the minimal-viable. No global interventions without root-cause diagnosis. At every iteration ask: "Does this change resolve the absence of an existing rule, or compensate for a violation of an existing rule?" — if the latter, do NOT strengthen the rule; **diagnose the cause of the violation first**.
 - **Convergence Critic always included**: any multi-review iterating 2+ times must include a Convergence vs Drift meta-Critic to monitor iteration health.
+- **Unexamined presuppositions**: critics scoped narrowly will evaluate the decision as posed and miss frame-level errors in the question itself. If after multiple iterations a reframing by the user (not the critics) reveals that the question was wrong, Phase 1's Presuppositions block was probably empty or vague. Fix: surface presuppositions explicitly in Phase 1 and either assign a critic to attack one, or grant all critics permission to verdict "question is wrongly framed."
