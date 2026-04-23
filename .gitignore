@@ -1,4 +1,8 @@
+# Editor / OS
 .DS_Store
 *.swp
 *.swo
 *~
+
+# Personal harness workspace — main should stay provider-only
+.claude/
