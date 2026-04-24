@@ -60,7 +60,7 @@ resolved: true | false
 
 ### Autoresearch Failure Trace Supplement
 
-When recording a Tier 0 autoresearch REJECT in failures/, additionally include:
+When recording an autoresearch REJECT in failures/, additionally include:
 - **genome diff**: `git diff HEAD~1` output (captured before revert)
 - **evaluator JSON**: full evaluate.py stdout
 - **causal analysis**: 1-2 line summary (why hypothesis and result diverged)

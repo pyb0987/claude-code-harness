@@ -123,7 +123,7 @@ Meta-Harness is the **policy layer** (when to isolate, when to learn). Sub-agent
 | **Qualitative multi-perspective judgment** | `multi-review` skill (parallel critics with role separation) | Hard-to-reverse decisions, regressions with suspected confounders, domains where single-perspective evaluation has failed before |
 | **Parallel independent exploration** | Multiple `Explore` sub-agents in one message | Comparing 2+ libraries / hypotheses / approaches where each branch is independent and would otherwise serialize |
 | **Context firewall** | Generic sub-agent (Explore or task-specific) | Investigations expected to consume large context (long log analysis, deep codebase walks) where the parent only needs the conclusion |
-| **Evaluator independence** | Dedicated Evaluator sub-agent (Tier 2) OR Fixed Evaluator (Tier 0 — immutable Python script) | High-stakes generation where self-evaluation bias is the primary risk; the generator must not score its own output. Fixed Evaluator is the cheapest and strongest form; Tier 2 sub-agent is the alternative when binary verdict is not viable |
+| **Evaluator independence** | Dedicated Evaluator sub-agent OR Fixed Evaluator (immutable Python script) | High-stakes generation where self-evaluation bias is the primary risk; the generator must not score its own output. Fixed Evaluator is the cheapest and strongest form; a dedicated sub-agent is the alternative when binary verdict is not viable |
 
 The four triggers map directly to the three multi-agent benefits commonly cited in the multi-agent literature:
 - *Context separation* → Context firewall
