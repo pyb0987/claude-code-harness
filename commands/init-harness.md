@@ -76,7 +76,7 @@ Write or enhance project CLAUDE.md:
    - traces/ structure
    - **Change strategy**: Additive first -> Subtractive -> Structural (one at a time, confounding variable isolation)
    - **Failure escalation loop**: a `resolved: true` entry in `traces/failures/*.md` must satisfy at least one of — (a) `escalated_to` is not empty (absorbed into CLAUDE.md / hook / tool), (b) an active search-set guard for the same pattern exists. If neither holds, do not mark it resolved
-   - **Sub-agent triggers**: reference docs/methodology.md "Sub-Agent Invocation" — three categories (multi-review for qualitative judgment, parallel Explore for independent exploration, generic sub-agent for context firewall). Prefer over-invoking to under-invoking
+   - **Sub-agent triggers**: reference docs/methodology.md "Sub-Agent Invocation" — two repo-specific triggers (multi-review for qualitative judgment, Fixed Evaluator for evaluator independence). Generic sub-agent uses (parallel Explore, context firewall) are Claude Code patterns, not harness policy. Prefer over-invoking to under-invoking
    - Protected files (if applicable)
 
 ### Step 5: Configure Hooks

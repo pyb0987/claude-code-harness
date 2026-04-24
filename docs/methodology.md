@@ -116,20 +116,14 @@ Human-editable truth (YAML / schema / config)
 
 Meta-Harness is the **policy layer** (when to isolate, when to learn). Sub-agents are the **tactical mechanism** (how to isolate). The two are orthogonal: invoking sub-agents does not violate the single-agent principle as long as no `.claude/agents/` definition files or persistent multi-persona orchestrators are created. Sub-agents are tools, not teammates.
 
-### Four trigger categories
+### Trigger categories
+
+Two triggers map to repo-specific mechanisms. Generic sub-agent uses (parallel exploration, context firewall) are Claude Code Agent tool patterns, not harness policy — invoke them at your own judgment without a trigger table.
 
 | Trigger | Mechanism | When |
 |---------|-----------|------|
 | **Qualitative multi-perspective judgment** | `multi-review` skill (parallel critics with role separation) | Hard-to-reverse decisions, regressions with suspected confounders, domains where single-perspective evaluation has failed before |
-| **Parallel independent exploration** | Multiple `Explore` sub-agents in one message | Comparing 2+ libraries / hypotheses / approaches where each branch is independent and would otherwise serialize |
-| **Context firewall** | Generic sub-agent (Explore or task-specific) | Investigations expected to consume large context (long log analysis, deep codebase walks) where the parent only needs the conclusion |
 | **Evaluator independence** | Dedicated Evaluator sub-agent OR Fixed Evaluator (immutable Python script) | High-stakes generation where self-evaluation bias is the primary risk; the generator must not score its own output. Fixed Evaluator is the cheapest and strongest form; a dedicated sub-agent is the alternative when binary verdict is not viable |
-
-The four triggers map directly to the three multi-agent benefits commonly cited in the multi-agent literature:
-- *Context separation* → Context firewall
-- *Multi-perspective on problems* → Qualitative multi-perspective judgment
-- *Self-defense / evaluator independence* → Evaluator independence (dedicated row above)
-- *Plus*: Parallel exploration as a tactical efficiency benefit Meta-Harness inherits naturally
 
 This is why Meta-Harness can absorb multi-agent benefits without abandoning the single-agent paradigm: each benefit has a tactical mechanism that does not require persistent agent definitions or multi-persona orchestration.
 
