@@ -1,36 +1,49 @@
-# Claude Code Harness
+# Code Harness
 
-A practical framework for building reliable AI-assisted development environments with [Claude Code](https://docs.anthropic.com/en/docs/claude-code), inspired by the [Meta-Harness](https://arxiv.org/abs/2603.28052) paper (Lee et al., Stanford 2026).
+A practical framework for building reliable AI-assisted development environments across coding agents, inspired by the [Meta-Harness](https://arxiv.org/abs/2603.28052) paper (Lee et al., Stanford 2026).
 
-Meta-Harness demonstrated that **the environment around an LLM matters as much as the model itself** — changing only the harness can produce a 6× performance gap on the same benchmark. This project takes the paper's key experimental findings and applies them to everyday Claude Code development workflows.
+Meta-Harness demonstrated that **the environment around an LLM matters as much as the model itself** — changing only the harness can produce a 6x performance gap on the same benchmark. This project takes the paper's key experimental findings and applies them to everyday agentic development workflows.
+
+The repository is split into a shared core plus thin runtime adapters. The methodology should be edited once in `core/`; Claude Code and Codex integration details live under `adapters/`.
 
 ## What's Inside
 
 | Component | Description | Path |
 |-----------|-------------|------|
-| **Methodology** | Core principles loaded every session | `docs/methodology.md` |
-| **Reference** | Detailed trace formats, analysis workflows | `docs/reference.md` |
-| **autoresearch** | Autonomous experiment loop (Karpathy pattern) — invoke with `/autoresearch` | `skills/autoresearch/` |
-| **harness-engineer** | Failure diagnosis + harness evolution | `skills/harness-engineer/` |
-| **multi-review** | Parallel independent critics for high-stakes decisions — invoke with `/multi-review` | `skills/multi-review/` |
-| **init-harness** | Project harness bootstrap command | `commands/init-harness.md` |
+| **Core methodology** | Runtime-neutral principles and trace formats | `core/` |
+| **Claude adapter** | Claude Code commands, skills, examples, hooks guidance | `adapters/claude/` |
+| **Codex adapter** | Codex skills and project instruction templates | `adapters/codex/` |
 
 ## Core Principles
 
-All principles come directly from Meta-Harness experiments and ablation studies:
+Core principles come directly from Meta-Harness experiments and ablation studies:
 
 - **Raw traces over summaries** — Full trace access achieved 56.7% accuracy vs 38.7% with summaries (Table 3). Agents diagnose failures by reading raw execution logs via `grep` and `cat`, not by ingesting compressed summaries. Trace files use YAML frontmatter for programmatic querying — `grep -l 'verdict: regressed' traces/evolution/` instantly filters regression cases.
-- **Additive modification** — 6 consecutive iterations regressed when modifying control flow or prompts (Appendix A.2). Iteration 7 won by *adding information* (environment bootstrap) without touching existing logic. Adding is safer than restructuring.
+- **Additive modification** — 6 consecutive iterations regressed when modifying control flow or prompts (Appendix A.2). Iteration 7 won by adding information (environment bootstrap) without touching existing logic. Adding is safer than restructuring.
 - **Code-space search** — Agents explore by modifying code and configuration files, not by rewriting natural language prompts. "Try harder" is noise; a 3-line config change is search.
 - **Minimal outer loop** — The search loop is deliberately simple: propose → evaluate → log → repeat. Complex orchestration increases outer loop cost without proportional benefit.
 - **Skill document quality as highest leverage** — "Iterating on the skill text had a larger effect on search quality than changing iteration count or population size" (Appendix D). Define goals and prohibitions; leave diagnosis free.
 - **Confounding variable isolation** — Prompt changes were confounded with structural fixes (Appendix A.2, iteration 3), leading to misattributed regressions. One change at a time.
 
-## Installation
+## Repository Layout
 
-### Global setup (once)
+```text
+core/
+├── methodology.md          # Runtime-neutral principles
+└── reference.md            # Trace formats and analysis workflow
+adapters/
+├── claude/
+│   ├── commands/
+│   ├── examples/
+│   └── skills/
+└── codex/
+    ├── skills/
+    └── templates/
+```
 
-Copy methodology and reference docs to your Claude Code global config:
+## Claude Code Adapter
+
+### Global setup
 
 ```bash
 # Clone the repo
@@ -39,101 +52,123 @@ cd claude-code-harness
 
 # Copy core docs (loaded every session)
 mkdir -p ~/.claude/rules/common
-cp docs/methodology.md ~/.claude/rules/common/harness-methodology.md
+cp core/methodology.md ~/.claude/rules/common/harness-methodology.md
 
 # Copy reference docs (loaded on demand)
 mkdir -p ~/.claude/docs
-cp docs/reference.md ~/.claude/docs/harness-reference.md
+cp core/reference.md ~/.claude/docs/harness-reference.md
 
 # Copy skills (autoresearch + harness-engineer + multi-review)
-# multi-review is a *global* dependency consumed from ~/.claude/skills/multi-review/
-cp -r skills/* ~/.claude/skills/
+# multi-review is a global dependency consumed from ~/.claude/skills/multi-review/
+mkdir -p ~/.claude/skills
+cp -r adapters/claude/skills/* ~/.claude/skills/
 
 # Copy commands
 mkdir -p ~/.claude/commands
-cp commands/init-harness.md ~/.claude/commands/
-```
-
-After installation, your `~/.claude/` should include:
-```
-~/.claude/
-├── rules/common/
-│   └── harness-methodology.md    # Core principles (auto-loaded)
-├── docs/
-│   └── harness-reference.md      # Detailed reference (on-demand)
-├── skills/
-│   ├── autoresearch/SKILL.md
-│   ├── harness-engineer/SKILL.md
-│   └── multi-review/SKILL.md
-└── commands/
-    └── init-harness.md
+cp adapters/claude/commands/init-harness.md ~/.claude/commands/
 ```
 
 ### Per-project setup
 
 Run the bootstrap command in any project:
 
-```
+```text
 > /init-harness
 ```
 
 This analyzes your project and generates:
 
-```
+```text
 your-project/
 ├── .claude/
 │   ├── traces/
 │   │   ├── evolution/            # Harness change history
 │   │   ├── failures/             # Failure diagnosis records
 │   │   ├── experiments/          # Autoresearch episodes
-│   │   └── search-set.md        # Verification test cases
+│   │   └── search-set.md         # Verification test cases
 │   ├── hooks/                    # Project-specific hook scripts
 │   └── skills/                   # Domain-specific skills (if needed)
-├── CLAUDE.md                     # Project instructions (≤100 lines)
+├── CLAUDE.md                     # Project instructions
 └── settings.local.json           # Hook configuration
 ```
 
-### Verify installation
+## Codex Adapter
+
+Codex support is intentionally an adapter, not a fork. Shared methodology stays in `core/`; Codex-specific skills describe how Codex should apply it using `AGENTS.md`, `.harness/traces/` by default, existing `.claude/traces/` when present, terminal verification, and Codex sub-agents.
+
+Initial Codex adapter contents:
+
+| Component | Path |
+|-----------|------|
+| Bootstrap skill | `adapters/codex/skills/init-codex-harness/SKILL.md` |
+| Project instruction template | `adapters/codex/skills/init-codex-harness/assets/AGENTS.md.template` |
+| Multi-review skill | `adapters/codex/skills/multi-review/SKILL.md` |
+
+Suggested local install while developing the adapter:
 
 ```bash
-# Check methodology loads
-claude "What are the core harness methodology principles?"
-
-# Check init-harness is available
-claude "/init-harness"
+mkdir -p ~/.codex/skills
+cp -r adapters/codex/skills/* ~/.codex/skills/
+# Optional while developing from the repo: keep adapters/codex/templates as a compatibility mirror for humans.
 ```
+
+Use the skill by asking Codex to "init codex harness" or "apply codex-harness to this project". Use Codex multi-review by asking for a multi-perspective review.
+
+Codex does not consume Claude Code slash commands or `.claude/settings.local.json` hooks. The adapter therefore starts with explicit verify commands and trace discipline; stronger enforcement should be added through Codex plugins, CI, git hooks, or project-local scripts where appropriate.
+
+## Migration Notes
+
+Top-level `docs/`, `commands/`, and `skills/` paths are retained as temporary compatibility mirrors for one transition period. Old install commands continue to install working Claude Code assets, but new work should edit `core/` and `adapters/`; mirror files are only there to protect existing bookmarks, scripts, and user muscle memory.
+
+Compatibility mirror mapping:
+
+| Old path | New source of truth |
+|----------|---------------------|
+| `docs/methodology.md` | `core/methodology.md` |
+| `docs/reference.md` | `core/reference.md` |
+| `commands/init-harness.md` | `adapters/claude/commands/init-harness.md` |
+| `skills/*` | `adapters/claude/skills/*` |
+| `adapters/codex/templates/AGENTS.md.template` | `adapters/codex/skills/init-codex-harness/assets/AGENTS.md.template` |
+
+Run `python3 scripts/check-compat-mirrors.py` before committing changes that touch mirrored paths.
+
+### Pre-commit Hook
+
+Enable the tracked git hook in local clones:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The pre-commit hook runs `python3 scripts/check-compat-mirrors.py` so temporary compatibility mirrors cannot silently drift from their canonical files.
 
 ## How It Works
 
 ### Daily development flow
 
-```
-1. Start session → methodology.md auto-loads
-2. Work normally with Claude Code
+```text
+1. Start session → project instructions and relevant skills load
+2. Work normally with the coding agent
 3. On failure → harness-engineer diagnoses from traces
 4. Fix applied → recorded in traces/evolution/
 5. Harness gradually improves over time
 ```
 
-### Multi-review flow (for high-stakes or multi-perspective decisions)
+### Multi-review flow
 
-```
-1. /multi-review → frame the decision (what, stakes, constraints, input)
-2. Design 2-4 disjoint critics on the spot (each with explicit scope + anti-scope)
-3. Run critics in parallel as independent sub-agents (no result sharing)
-4. Convergence check → PASS / VETO / MIXED → Synthesis if needed
+```text
+1. Frame the decision (what, stakes, constraints, input)
+2. Design 2-4 disjoint critics on the spot
+3. Run critics in parallel as independent sub-agents
+4. Convergence check → PASS / VETO / MIXED
 5. Present table + final verdict; user retains final decision authority
 ```
 
-Multi-review is the tactical mechanism for the *qualitative multi-perspective judgment* trigger documented in `docs/methodology.md` "Sub-Agent Invocation". Use it for hard-to-reverse decisions, regressions with suspected confounders, and domains where single-perspective evaluation has missed things before. Iterations 2+ require a Convergence vs Drift meta-critic to detect mechanism-on-mechanism stacking.
+### Autoresearch flow
 
-### Autoresearch flow (for optimization tasks)
-
-```
-1. /autoresearch → setup 3-file architecture
-   program.md (direction) + evaluate.py (immutable judge) + genome (mutable code)
-2. Agent runs autonomous experiment loop:
-   hypothesis → implement → evaluate → ADOPT or REJECT → repeat
+```text
+1. Set up program.md (direction) + evaluate.py (immutable judge) + genome (mutable code)
+2. Agent runs autonomous experiment loop: hypothesis → implement → evaluate → ADOPT or REJECT
 3. Results logged to experiments.jsonl + episode traces
 4. After 100 experiments or 20 consecutive rejects → escalate
 ```
@@ -162,63 +197,28 @@ No automated type check on file edit. Agent relies on self-discipline
 to run tsc, which is unreliable under context pressure.
 
 ### Fix
-Added PostToolUse hook: `tsc --noEmit` runs after every Edit|Write on *.ts files.
+Added a structural verification path for `tsc --noEmit`.
 
 ### Prevention
-Hook in settings.local.json — agent cannot proceed past type errors.
-```
-
-The harness-engineer reads this trace. If similar failures recur despite the hook, it diagnoses *why* the prevention failed rather than starting from scratch.
-
-## Example: Evolution Log
-
-```markdown
-# traces/evolution/002-add-tsc-hook.md
----
-iteration: 2
-date: "2026-04-01"
-type: additive
-verdict: improved
-files_changed: ["settings.local.json"]
-refs: []
----
-
-## Iteration 2: Add TypeScript type check hook
-
-Trigger: Agent repeatedly introduced type errors (see failures/001)
-
-### Diagnosis
-- Agent cannot reliably self-enforce type checking under context pressure
-- Solution: external enforcement via hook
-
-### Change
-- Added PostToolUse hook for Edit|Write on *.ts files
-- Runs `tsc --noEmit 2>&1 | tail -20`, exits 1 on failure
-
-### Result
-- Before: ~3 type errors per session, caught only in CI
-- After: 0 type errors escape to CI (hook blocks immediately)
-
-### Lesson
-Self-discipline constraints should be converted to hooks when programmatically enforceable.
-This aligns with the transfer principle: linter/CI-enforceable rules → tooling, not CLAUDE.md.
+The project harness now makes typecheck failures visible before completion.
 ```
 
 ## Design Decisions
 
-**Why not `.claude/agents/`?** Meta-Harness focuses on single-agent environment optimization. Subagents are used as tools (evaluator, Explore for codebase scanning) for context isolation, not as collaborating personas.
+**Why adapters?** The methodology should not be duplicated across agent runtimes. Runtime-specific details such as slash commands, hook schemas, project instruction filenames, and sub-agent model names belong in adapters.
 
 **Why YAML frontmatter in traces?** Enables programmatic querying: `grep -l 'verdict: regressed'` instantly filters regression cases across hundreds of traces. This mirrors the paper's filesystem-based access pattern.
 
-**Why 100-line CLAUDE.md limit?** Every token in CLAUDE.md is loaded every session. Verbose instructions waste context budget. Detailed docs go in `docs/`; CLAUDE.md is the table of contents.
+**Why concise project instructions?** Every token loaded every session competes with task context. Detailed docs go in project documentation or adapter references; project instructions are the table of contents.
 
-**Why immutable evaluate.py?** The paper principle: if the agent can modify its own evaluator, it contaminates the feedback signal. Evaluator protection hooks enforce this boundary.
+**Why immutable evaluate.py?** The paper principle: if the agent can modify its own evaluator, it contaminates the feedback signal. Adapters choose the runtime-appropriate enforcement mechanism.
 
-**Why transfer rules to tooling?** Rules enforceable by linters/CI should live in tooling, not CLAUDE.md. CLAUDE.md should contain only intent and judgment criteria that tools cannot enforce. This keeps agent instructions high-signal.
+**Why transfer rules to tooling?** Rules enforceable by linters/CI should live in tooling, not agent instructions. Project instruction files should contain only intent and judgment criteria that tools cannot enforce.
 
 ## Acknowledgments
 
 Core principles are derived from:
+
 - [Meta-Harness: End-to-End Optimization of Model Harnesses](https://arxiv.org/abs/2603.28052) (Lee et al., 2026)
 - [Effective Harnesses for Long-Running Agents](https://anthropic.com/engineering/effective-harnesses-for-long-running-agents) (Anthropic, 2025)
 

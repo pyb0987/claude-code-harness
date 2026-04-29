@@ -3,8 +3,6 @@ name: autoresearch
 description: "Autonomous experiment loop: setup and run Karpathy-style autoresearch with fixed evaluator + mutable genome + program.md direction. Use when a project needs automated hypothesis→experiment→evaluate→keep/discard cycles."
 ---
 
-<!-- Compatibility mirror of `adapters/claude/skills/autoresearch/SKILL.md`. Edit the canonical source, not this file. -->
-
 # Autoresearch Protocol
 
 Apply the Karpathy autoresearch pattern to projects.

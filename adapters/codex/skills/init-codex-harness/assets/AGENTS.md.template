@@ -1,0 +1,50 @@
+# Project Instructions
+
+## Build
+
+```bash
+# Fill from project inspection
+# npm run build
+# npm run test
+# npm run lint
+```
+
+## Architecture
+
+- Record only non-obvious boundaries Codex must preserve.
+- Prefer references to existing docs over long summaries.
+- Do not duplicate rules already enforced by tooling.
+
+## Harness
+
+### Trace Root
+
+Use `{TRACE_ROOT}` for harness history:
+
+```text
+{TRACE_ROOT}/evolution/     # Harness change history
+{TRACE_ROOT}/failures/      # Failure diagnosis with raw context
+{TRACE_ROOT}/experiments/   # Autoresearch episodes
+{TRACE_ROOT}/search-set.md  # Active verification cases
+```
+
+### Change Strategy
+
+Use additive changes first, subtractive changes second, structural changes last. Keep one functional harness change per iteration so regressions are attributable.
+
+### Verification
+
+Before and after harness changes, run Active verify commands from `{TRACE_ROOT}/search-set.md` when practical. Record PASS/FAIL and key output lines in the related evolution trace.
+
+### Failure Recording
+
+Record failures that require causal reasoning, produce results opposite to hypothesis, or reveal a new guard violation type. Do not record simple typos or obvious one-off fixes.
+
+### Structural Escalation
+
+Recurring failures should move from instructions to tooling, CI, generated artifacts, or other structural prevention. Prefer "cannot happen" over "remember not to do it."
+
+## Codex Notes
+
+- Codex does not use Claude Code slash commands or `.claude/settings.local.json` hooks.
+- Use explicit verification commands unless project tooling provides stronger enforcement.

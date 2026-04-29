@@ -1,9 +1,7 @@
-<!-- Compatibility mirror of `core/reference.md`. Edit the canonical source, not this file. -->
-
 # Harness Engineering Reference
 
 Detailed runtime-neutral reference loaded when init-harness or harness-engineer skills are invoked.
-Not auto-loaded every session. In an installed Claude setup, core principles are in `~/.claude/rules/common/harness-methodology.md`. Repository source: `core/methodology.md`.
+Not auto-loaded every session. Core principles are in core/methodology.md.
 
 ## 1. Trace Filesystem — Structure and Format
 

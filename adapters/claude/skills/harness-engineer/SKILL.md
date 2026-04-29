@@ -3,8 +3,6 @@ name: harness-engineer
 description: "INVOKE THIS SKILL when agent repeatedly fails at a task pattern, when evolving CLAUDE.md rules after failure, or when reviewing harness quality. NOT for initial setup (use /init-harness instead)."
 ---
 
-<!-- Compatibility mirror of `adapters/claude/skills/harness-engineer/SKILL.md`. Edit the canonical source, not this file. -->
-
 <overview>
 Evolve the environment (constraints, feedback loops, tools) that enables agents to work reliably.
 New harness creation is handled by /init-harness. This skill handles evolution and failure response for existing harnesses.

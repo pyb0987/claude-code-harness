@@ -2,8 +2,6 @@
 description: Analyze project and generate a Meta-Harness (traces + CLAUDE.md + hooks + domain skills)
 ---
 
-<!-- Compatibility mirror of `adapters/claude/commands/init-harness.md`. Edit the canonical source, not this file. -->
-
 # /init-harness
 
 Analyze a project and configure its Meta-Harness.

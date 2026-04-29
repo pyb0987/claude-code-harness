@@ -1,8 +1,6 @@
-<!-- Compatibility mirror of `core/methodology.md`. Edit the canonical source, not this file. -->
-
 # Harness Engineering Methodology — Core
 
-Runtime-neutral core principles. For detailed reference in an installed Claude setup, see `~/.claude/docs/harness-reference.md`. Repository source: `core/reference.md`.
+Runtime-neutral core principles. For detailed reference, see core/reference.md.
 
 > The bottleneck is environment design, not model intelligence.
 > Richer diagnostic context produces better harnesses. (Meta-Harness, Lee et al. 2026)

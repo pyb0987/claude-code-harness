@@ -3,8 +3,6 @@ name: multi-review
 description: "Dynamic multi-perspective review: spawn parallel critics with role separation for high-stakes decisions. Use when a decision needs validation from multiple independent viewpoints."
 ---
 
-<!-- Compatibility mirror of `adapters/claude/skills/multi-review/SKILL.md`. Edit the canonical source, not this file. -->
-
 # Multi-Review Protocol
 
 For important decisions, run independent-perspective Critics in parallel to perform multi-angle validation.
