@@ -20,12 +20,31 @@ The first Codex adapter layer provides:
 - Claude Code hook schemas are not copied into Codex. Codex enforcement should use Codex hooks where available, backed by CI, git hooks, and project-local scripts for hard enforcement.
 - Non-blocking adapter follow-up work is tracked in `backlog/codex-adapter.md`; shared methodology follow-ups live in `backlog/core.md`.
 
+## Distribution Decision
+
+Primary distribution path: **local Codex plugin bundle**.
+
+Rationale: the Codex adapter now includes more than standalone skill text. Autoresearch protection needs hooks, checker scripts, templates, and examples to travel together. A plugin bundle is the smallest distribution unit that can carry those assets without turning the adapter into a fork of the core methodology.
+
+Supported paths:
+
+| Path | Status | Use |
+|------|--------|-----|
+| Local plugin bundle | Primary | Normal local development and dogfooding |
+| Direct skill copy | Development fallback | Fast iteration on skill text only |
+| Marketplace/plugin bundle | Future release path | Published distribution after plugin layout stabilizes |
+| `skill-installer` | Compatibility investigation | Skill-only install if safe degraded behavior is documented |
+
 ## Local Development Install
+
+Until the local plugin bundle is scaffolded, use the direct skill-copy fallback only for skill text iteration:
 
 ```bash
 mkdir -p ~/.codex/skills
 cp -r adapters/codex/skills/* ~/.codex/skills/
 ```
+
+This fallback does not install Codex hooks, checker scripts, or plugin assets. Do not treat it as the full autoresearch safety path.
 
 Then ask Codex:
 

@@ -43,32 +43,35 @@ Potential improvement:
 - Level 3 structural impossibility: single source, generator, protected generated derivatives, and CI/git-hook drift check.
 - Revisit templates when Codex hook interception semantics change.
 
-### 4. Choose the primary Codex skill distribution path
+### 4. Implement the chosen Codex distribution path
 
-Codex skills can be installed in several ways, and the adapter should choose one primary path for users.
+Decision: use a **local Codex plugin bundle** as the primary distribution path.
 
-Options to decide:
+Status of paths:
 
-- Simple local copy: `cp -r adapters/codex/skills/* ~/.codex/skills/`
-- Local plugin bundle.
-- Marketplace/plugin bundle.
-- `skill-installer` compatibility.
+- Local plugin bundle: primary path for normal local development and dogfooding.
+- Direct skill copy: development fallback for fast skill text iteration only.
+- Marketplace/plugin bundle: future release path after local plugin layout stabilizes.
+- `skill-installer`: compatibility investigation for skill-only degraded installs.
+
+Follow-up work:
+
+- Scaffold the plugin layout with `.codex-plugin/plugin.json`.
+- Move or mirror skills, hooks, scripts, assets, and templates into the plugin bundle.
+- Add a local plugin install smoke test.
+- Decide how the fallback direct-copy path reports missing hooks/checker assets.
+- Keep README install instructions aligned with the plugin layout.
+
+### 5. Define Codex plugin bundle scope
+
+Decision: Codex support should become a local plugin bundle. The remaining question is what ships in the first bundle.
 
 Potential improvement:
 
-- Pick one primary install path and document the rest as development or compatibility paths.
-- Add an install smoke test for the primary path.
-- Keep README instructions aligned with the chosen path.
-
-### 5. Decide whether Codex support should become a plugin
-
-Skills may be enough for instruction-only behavior, but autoresearch protection now includes hooks, check scripts, assets, and templates.
-
-Potential improvement:
-
-- Decide whether `adapters/codex/` should include `.codex-plugin/plugin.json`.
-- If pluginized, define which assets ship with the plugin: skills, `.codex/hooks.json`, protection checker template, AGENTS template, and example docs.
-- Keep skill-only installation available only if it can still provide a safe degraded path.
+- Add `.codex-plugin/plugin.json` under the chosen plugin root.
+- Include skills, Codex hook templates, protection checker templates, AGENTS template, and example docs.
+- Define which files are canonical in `adapters/codex/` and which are generated or mirrored into the plugin layout.
+- Keep direct skill-copy installation only as a documented degraded path for skill text iteration.
 
 ### 6. Standardize Codex verify command discovery
 
