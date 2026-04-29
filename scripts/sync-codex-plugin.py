@@ -40,7 +40,6 @@ def _iter_files(base: Path):
             yield path
 
 
-
 def validate_source_tree() -> list[str]:
     errors: list[str] = []
     required = (
@@ -61,6 +60,7 @@ def validate_source_tree() -> list[str]:
                 errors.append(f"MISSING REQUIRED SOURCE: {path.relative_to(ROOT)}")
     return errors
 
+
 def build_mappings() -> list[Mapping]:
     mappings = [
         Mapping(
@@ -68,11 +68,15 @@ def build_mappings() -> list[Mapping]:
             PLUGIN_ROOT / ".codex-plugin" / "plugin.json",
         ),
         Mapping(SOURCE_ROOT / "README.md", PLUGIN_ROOT / "README.md"),
+        Mapping(SOURCE_ROOT / "plugin-scope.md", PLUGIN_ROOT / "plugin-scope.md"),
     ]
-    for directory in ("skills", "templates"):
-        base = SOURCE_ROOT / directory
-        for source in _iter_files(base):
-            mappings.append(Mapping(source, PLUGIN_ROOT / directory / source.relative_to(base)))
+    skills_root = SOURCE_ROOT / "skills"
+    for source in _iter_files(skills_root):
+        mappings.append(Mapping(source, PLUGIN_ROOT / "skills" / source.relative_to(skills_root)))
+
+    templates_root = SOURCE_ROOT / "templates"
+    for file_name in REQUIRED_TEMPLATE_FILES:
+        mappings.append(Mapping(templates_root / file_name, PLUGIN_ROOT / "templates" / file_name))
     return mappings
 
 
@@ -99,7 +103,6 @@ def validate_manifest(path: Path) -> list[str]:
     return errors
 
 
-
 def render_diff(source_path: Path, dest_path: Path, source: bytes, dest: bytes) -> list[str]:
     try:
         source_text = source.decode("utf-8")
@@ -115,6 +118,7 @@ def render_diff(source_path: Path, dest_path: Path, source: bytes, dest: bytes) 
             lineterm="",
         )
     )
+
 
 def find_extra_files(expected: set[Path]) -> list[Path]:
     if not PLUGIN_ROOT.exists():

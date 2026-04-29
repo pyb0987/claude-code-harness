@@ -11,7 +11,7 @@ The first Codex adapter layer provides:
 - `autoresearch` skill for measurable autonomous experiment loops
 - `AGENTS.md` template for project-local instructions
 - Trace filesystem guidance using `.harness/traces/` by default
-- Codex hooks plus explicit verify-command discipline in place of Claude Code hook assumptions
+- Codex hook enforcement strategy plus explicit verify-command discipline in place of Claude Code hook assumptions
 
 ## Design Choices
 
@@ -44,6 +44,18 @@ Supported paths:
 | Direct skill copy | Development fallback | Fast iteration on skill text only |
 | Marketplace/plugin bundle | Future release path | Published distribution after plugin layout stabilizes |
 | `skill-installer` | Compatibility investigation | Skill-only install if safe degraded behavior is documented |
+
+## Bundle Scope
+
+The bundle scope is staged so packaging does not outrun tested behavior. Full details live in `plugin-scope.md`.
+
+| Stage | Includes | Status |
+|-------|----------|--------|
+| v0 scaffold | Skills, AGENTS template, README, plugin manifest, scope document | Implemented |
+| v1 protection | Codex hook templates, autoresearch checker template, protected-path template, install smoke-test docs | Planned |
+| Later release | Examples, marketplace metadata, richer install validation | Planned |
+
+The Meta-Harness paper informs the acceptance criteria for this scope, but its methodology remains in `core/`; the plugin should not copy core content into a Codex-specific fork.
 
 ## Local Development Install
 

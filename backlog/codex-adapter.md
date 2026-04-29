@@ -70,15 +70,21 @@ Remaining follow-up work:
 
 ### 5. Define Codex plugin bundle scope
 
-Decision: Codex support should become a local plugin bundle. The remaining question is what ships in the first bundle.
+Decision implemented: use staged plugin scope so the bundle carries tested Codex adapter surfaces without copying shared core methodology. Details live in `adapters/codex/plugin-scope.md` and the generated plugin copy.
 
-Potential improvement:
+Implemented v0 scope:
 
-- Add `.codex-plugin/plugin.json` under `plugins/ai-agent-meta-harness/`.
-- Include skills, Codex hook templates, protection checker templates, AGENTS template, and example docs.
+- Include skills, explicitly mapped AGENTS template, README, plugin manifest, and plugin scope document.
 - Keep `adapters/codex/` canonical and generate plugin files from it.
-- Define the generated path mapping, then add a drift check for those paths.
 - Keep direct skill-copy installation only as a documented degraded path for skill text iteration.
+- Treat Meta-Harness paper principles as acceptance criteria, not duplicated plugin content.
+
+Remaining follow-up work:
+
+- Add Codex hook templates under `adapters/codex/templates/hooks/`, runtime hook config under `adapters/codex/hooks/` only after smoke test, plus autoresearch checker and protected-path templates as v1 protection assets.
+- Add completed Codex examples after a real project dry run.
+- Expand `plugin.json` beyond `skills` only after runtime assets are executable and smoke-tested.
+- Keep marketplace metadata deferred until local plugin activation is proven.
 
 ### 6. Standardize Codex verify command discovery
 
