@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import subprocess
+import tempfile
+import textwrap
 import unittest
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -48,6 +51,56 @@ class HookTemplateTests(unittest.TestCase):
         self.assertIn(".harness/autoresearch-protected.txt", text)
         self.assertIn("check-autoresearch-protected.py --pre-commit", text)
         self.assertIn("best_score.txt", text)
+
+    def run_smoke_with_fake_checker(self, checker_source: str):
+        with tempfile.TemporaryDirectory() as tmp:
+            cwd = Path(tmp)
+            scripts = cwd / "scripts"
+            protected_dir = cwd / ".harness"
+            scripts.mkdir()
+            protected_dir.mkdir()
+            checker = scripts / "fake-checker.py"
+            checker.write_text(textwrap.dedent(checker_source), encoding="utf-8")
+            protected = protected_dir / "autoresearch-protected.txt"
+            protected.write_text("evaluate.py\n", encoding="utf-8")
+            return subprocess.run(
+                [
+                    "python3",
+                    str(ROOT / "adapters" / "codex" / "scripts" / "smoke-autoresearch-hooks.py"),
+                    "--checker",
+                    str(checker),
+                    "--protected-file",
+                    str(protected),
+                ],
+                cwd=cwd,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+
+    def test_smoke_script_rejects_legacy_top_level_decision(self):
+        result = self.run_smoke_with_fake_checker(
+            'import json\nprint(json.dumps({"decision": "block"}))\n'
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("legacy top-level decision", result.stderr)
+
+    def test_smoke_script_rejects_invalid_json(self):
+        result = self.run_smoke_with_fake_checker('print("not json")\n')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("invalid JSON", result.stderr)
+
+    def test_smoke_script_rejects_missing_output(self):
+        result = self.run_smoke_with_fake_checker('')
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("produced no blocking JSON", result.stderr)
+
+    def test_smoke_script_rejects_malformed_hook_specific_keys(self):
+        result = self.run_smoke_with_fake_checker(
+            'import json\nprint(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse", "permissionDecision": "deny"}}))\n'
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("hookSpecificOutput keys differ", result.stderr)
 
     def test_plugin_manifest_does_not_expose_runtime_hooks(self):
         manifest = json.loads((ROOT / "adapters" / "codex" / "plugin" / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))

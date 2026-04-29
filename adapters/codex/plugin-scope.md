@@ -9,7 +9,7 @@ only the Codex runtime adapter surfaces needed to apply that methodology.
 | Stage | Bundle contents | Status |
 |-------|-----------------|--------|
 | v0 scaffold | Skills, AGENTS template, README, plugin manifest, scope document | Implemented |
-| v1 protection | Checker, protected-path template, AGENTS reminder snippet, Codex hook template, pre-commit template, and CI template implemented; install/smoke-test docs planned | Partial |
+| v1 protection | Checker, hook smoke assertions, protected-path template, AGENTS reminder snippet, Codex hook template, pre-commit template, and CI template implemented; install docs planned | Partial |
 | Later release | Examples, marketplace metadata, richer install validation, optional generated assets | Planned |
 
 ## Current Generated Contents
@@ -30,6 +30,7 @@ The generated plugin at `plugins/ai-agent-meta-harness/` currently includes:
 - `templates/hooks/github-actions-autoresearch-protected.yml`
 - `templates/hooks/agents-autoresearch-protection.md`
 - `scripts/check-autoresearch-protected.py`
+- `scripts/smoke-autoresearch-hooks.py`
 
 The sync map copies only explicitly listed template and script files. Future templates or scripts must be added to this scope document and the sync map before they ship in the generated plugin.
 
@@ -63,6 +64,7 @@ Do not include:
 | AGENTS reminder snippet | `adapters/codex/templates/hooks/agents-autoresearch-protection.md` | `templates/hooks/agents-autoresearch-protection.md` | Level 1 instruction layer for target projects |
 | Runtime Codex hook config | `adapters/codex/hooks/` | `hooks/` plus manifest `hooks` field | Only after local activation smoke test passes |
 | Autoresearch checker reference | `adapters/codex/scripts/check-autoresearch-protected.py` | `scripts/check-autoresearch-protected.py` | Shared by Codex hooks, pre-commit, and CI templates |
+| Hook smoke assertions | `adapters/codex/scripts/smoke-autoresearch-hooks.py` | `scripts/smoke-autoresearch-hooks.py` | Mechanically asserts Codex hook deny JSON shapes |
 | Protected-path template | `adapters/codex/templates/autoresearch-protected.txt` | `templates/autoresearch-protected.txt` | Project bootstrap asset copied to `.harness/autoresearch-protected.txt` |
 | Completed Codex example | `adapters/codex/examples/` | `examples/` | Added after a real project dry run |
 

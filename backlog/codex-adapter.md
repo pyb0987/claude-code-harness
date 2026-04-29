@@ -175,13 +175,20 @@ Remaining follow-up work:
 
 ### 13. Make Codex hook smoke tests mechanically assert output
 
-The skill lists smoke-test commands and expected fields, but not assertion commands that fail when the returned JSON shape is wrong.
+Decision implemented: ship an executable smoke assertion script that fails non-zero when Codex hook output JSON drifts from the expected event-specific deny shapes.
 
-Potential improvement:
+Implemented foundation:
 
-- Add `python -c` or `jq -e` assertions for `hookSpecificOutput.permissionDecision == "deny"`.
-- Add assertions for `hookSpecificOutput.decision.behavior == "deny"` in `PermissionRequest`.
-- Ensure smoke tests fail non-zero when the checker returns legacy or malformed JSON.
+- `adapters/codex/scripts/smoke-autoresearch-hooks.py` runs checker hook modes with protected `evaluate.py` payloads.
+- The smoke script asserts `PreToolUse` returns `hookSpecificOutput.permissionDecision == "deny"`.
+- The smoke script asserts `PermissionRequest` returns `hookSpecificOutput.decision.behavior == "deny"`.
+- The smoke script rejects missing output, invalid JSON, malformed key sets, and the legacy top-level `decision` shape.
+- The plugin sync map generates the smoke script into `plugins/ai-agent-meta-harness/scripts/`.
+
+Remaining follow-up work:
+
+- Add install docs that show when to run the smoke script during target-project setup.
+- Re-run smoke assertions when Codex hook schemas change.
 
 ### 14. Track Codex hook schema drift
 

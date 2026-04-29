@@ -218,6 +218,7 @@ Bundled Codex adapter assets provide starting templates for this bundle:
 
 - `templates/autoresearch-protected.txt` -> `.harness/autoresearch-protected.txt`
 - `scripts/check-autoresearch-protected.py` -> `scripts/check-autoresearch-protected.py`
+- `scripts/smoke-autoresearch-hooks.py` -> `scripts/smoke-autoresearch-hooks.py`
 - `templates/hooks/codex-hooks.json.template` -> `.codex/hooks.json` or the active Codex hook config layer
 - `templates/hooks/pre-commit-autoresearch-protected.sh` -> `.githooks/pre-commit` or an existing pre-commit hook
 - `templates/hooks/github-actions-autoresearch-protected.yml` -> a pull-request workflow or job in `.github/workflows/`
@@ -313,7 +314,7 @@ python3 scripts/check-autoresearch-protected.py --pre-commit
 python3 scripts/check-autoresearch-protected.py --ci
 ```
 
-The `PreToolUse` command must return `hookSpecificOutput.permissionDecision: "deny"` when `evaluate.py` is protected. The `PermissionRequest` command must return `hookSpecificOutput.decision.behavior: "deny"`. The pre-commit and CI commands must PASS on a clean tree and FAIL when a protected path is staged or changed.
+The smoke script must fail non-zero unless `PreToolUse` returns `hookSpecificOutput.permissionDecision: "deny"`, `PermissionRequest` returns `hookSpecificOutput.decision.behavior: "deny"`, both decisions name `evaluate.py`, and neither output uses the legacy top-level `decision` shape. The pre-commit and CI commands must PASS on a clean tree and FAIL when a protected path is staged or changed.
 
 Protection must cover the evaluator file and project modules/data it imports. Protecting only `evaluate.py` is insufficient if metric logic lives elsewhere.
 
