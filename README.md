@@ -13,6 +13,7 @@ The repository is split into a shared core plus thin runtime adapters. The metho
 | **Core methodology** | Runtime-neutral principles and trace formats | `core/` |
 | **Claude adapter** | Claude Code commands, skills, examples, hooks guidance | `adapters/claude/` |
 | **Codex adapter** | Codex skills and project instruction templates | `adapters/codex/` |
+| **Backlog** | Non-blocking core and adapter improvement items | `backlog/` |
 
 ## Core Principles
 
@@ -31,6 +32,10 @@ Core principles come directly from Meta-Harness experiments and ablation studies
 core/
 ├── methodology.md          # Runtime-neutral principles
 └── reference.md            # Trace formats and analysis workflow
+backlog/
+├── README.md               # Backlog ownership guide
+├── core.md                 # Agent-agnostic follow-ups
+└── codex-adapter.md        # Codex-specific follow-ups
 adapters/
 ├── claude/
 │   ├── commands/
