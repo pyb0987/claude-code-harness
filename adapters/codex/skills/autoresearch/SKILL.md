@@ -194,18 +194,67 @@ If `AGENTS.md` would become too long, put details in `docs/autoresearch.md` and 
 
 ### Step 7: Add Evaluator Protection
 
-Codex does not consume Claude Code `PreToolUse` hooks. Use project-local enforcement instead.
+Codex does not consume Claude Code hooks, but Codex has its own hook system. Use Codex hooks as the first guardrail, backed by project-local scripts, git hooks, and CI for hard enforcement.
 
-Preferred protection bundle:
+Required protection bundle:
 
-- a tracked file listing immutable evaluator paths, e.g. `.harness/autoresearch-protected.txt`
-- a project-local check script that fails when staged or working-tree diffs modify protected paths
-- a git hook and/or CI job that runs the check
-- `AGENTS.md` instruction that Codex must run the check before committing experiments
+- `.harness/autoresearch-protected.txt`: tracked list of immutable evaluator files, dependencies, and protected data paths
+- `scripts/check-autoresearch-protected.py`: one shared checker used by Codex hooks, pre-commit, and CI
+- `.codex/config.toml` or `.codex/hooks.json`: Codex `PreToolUse` and `PermissionRequest` hooks that call the shared checker
+- `.githooks/pre-commit` or equivalent repo hook that calls the shared checker before commits
+- CI required check that calls the shared checker on pull requests or protected branches
+- `AGENTS.md` instruction that names the protection command and says experiments must not bypass it
+
+Codex hook policy:
+
+- Enable hooks with `[features] codex_hooks = true` in `.codex/config.toml` or the active Codex config layer.
+- Use `PreToolUse` to block direct edits to protected paths through `apply_patch`, `Edit`, `Write`, and simple `Bash` commands.
+- Use `PermissionRequest` to deny escalation requests that would modify protected evaluator paths outside the sandbox.
+- Use `PostToolUse` only for review/backpressure. It can report that a completed command was unsafe, but it cannot undo the command.
+- Treat Codex hooks as guardrails, not the sole security boundary. Some shell paths may not be intercepted completely, so git hooks and CI must enforce the same policy.
+
+Minimal `.codex/hooks.json` shape:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/scripts/check-autoresearch-protected.py\" --codex-pre-tool-use",
+            "statusMessage": "Checking autoresearch protected files"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/scripts/check-autoresearch-protected.py\" --codex-permission-request",
+            "statusMessage": "Checking autoresearch escalation request"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+The shared checker should support three modes:
+
+- Codex hook mode: parse hook JSON from stdin and return a blocking JSON decision when the requested tool input targets a protected path.
+- Pre-commit mode: inspect staged and working-tree diffs for protected paths and exit non-zero on violation.
+- CI mode: compare the proposed change against the merge base and exit non-zero on protected-path edits.
 
 Protection must cover the evaluator file and project modules/data it imports. Protecting only `evaluate.py` is insufficient if metric logic lives elsewhere.
 
-Do not silently overwrite existing hooks or CI. If enforcement files exist, inspect and merge; if behavior differs structurally, show the diff and ask before replacing.
+Do not silently overwrite existing Codex hooks, git hooks, or CI. If enforcement files exist, inspect and merge; if behavior differs structurally, show the diff and ask before replacing.
 
 ### Step 8: Setup Completion Check
 
@@ -217,7 +266,7 @@ Before ending Setup Mode, verify:
 - `experiments.jsonl` exists
 - `{trace_root}/experiments/` exists
 - `AGENTS.md` or `docs/autoresearch.md` documents the loop and trace timing
-- evaluator protection is installed or the skipped reason is recorded
+- Codex hook smoke test, pre-commit check, and CI/protection status are PASS or skipped with explicit reason
 
 ## Run Mode
 
@@ -346,3 +395,4 @@ For Run Mode:
 - Reverting rejected code before preserving required diagnostic evidence
 - Logging summarized evaluator results instead of raw JSON fields
 - Copying Claude Code hook configuration into Codex projects as if Codex consumed it
+- Relying only on Codex hooks without the same protection in git hooks or CI

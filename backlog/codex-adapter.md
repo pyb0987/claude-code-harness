@@ -31,16 +31,17 @@ Potential improvement:
 - Define when it should propose migration into `.harness/traces/`.
 - Define the minimum migration plan: copy/move strategy, search-set preservation, and a trace entry recording the migration.
 
-### 3. Map stronger enforcement surfaces for Codex
+### 3. Harden Codex hook enforcement templates
 
-Codex does not consume Claude Code `settings.local.json` hooks. Adapter docs should keep a concrete map from core enforcement levels to Codex-compatible surfaces.
+Codex has project/user hooks, but hook interception should be treated as a guardrail rather than the only enforcement boundary. Adapter docs should keep concrete templates aligned with current Codex hook behavior.
 
 Potential improvement:
 
 - Level 1 warning: AGENTS.md reminder plus explicit verify command.
-- Level 2 block: project-local script, test, CI, or git hook.
+- Level 2 guardrail: Codex `PreToolUse` and `PermissionRequest` hooks calling a shared checker.
+- Level 2 hard block: project-local script, pre-commit hook, and CI using the same checker.
 - Level 3 structural impossibility: single source, generator, protected generated derivatives, and CI/git-hook drift check.
-- Future plugin hooks: document once a stable Codex plugin hook surface exists.
+- Revisit templates when Codex hook interception semantics change.
 
 ## Current Status
 
