@@ -108,6 +108,7 @@ Initial Codex adapter contents:
 | Bootstrap skill | `adapters/codex/skills/init-codex-harness/SKILL.md` |
 | Project instruction template | `adapters/codex/skills/init-codex-harness/assets/AGENTS.md.template` |
 | Harness-engineer skill | `adapters/codex/skills/harness-engineer/SKILL.md` |
+| Autoresearch skill | `adapters/codex/skills/autoresearch/SKILL.md` |
 | Multi-review skill | `adapters/codex/skills/multi-review/SKILL.md` |
 
 Suggested local install while developing the adapter:
