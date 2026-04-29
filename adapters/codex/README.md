@@ -26,13 +26,21 @@ Primary distribution path: **local Codex plugin bundle**.
 
 Rationale: the Codex adapter now includes more than standalone skill text. Autoresearch protection needs hooks, checker scripts, templates, and examples to travel together. A plugin bundle is the smallest distribution unit that can carry those assets without turning the adapter into a fork of the core methodology.
 
-Source-of-truth rule: `adapters/codex/` remains the canonical editable adapter source until the plugin layout is scaffolded. The first plugin implementation must choose and document one of two drift-safe paths before copying files: either the plugin becomes canonical and adapter paths become generated mirrors, or `adapters/codex/` stays canonical and plugin files are generated from it. Manual dual-editing is not allowed.
+Source-of-truth rule: `adapters/codex/` is the canonical editable Codex adapter source. The local plugin bundle will be generated from it; manual dual-editing between adapter files and plugin files is not allowed.
+
+Plugin layout decision:
+
+- Plugin root: `plugins/ai-agent-meta-harness/`
+- Canonical source: `adapters/codex/`
+- Generated output: `plugins/ai-agent-meta-harness/`
+- Planned sync command: `python3 scripts/sync-codex-plugin.py` (not implemented yet)
+- Drift check: pre-commit/release checks must verify generated plugin files match canonical adapter files
 
 Supported paths:
 
 | Path | Status | Use |
 |------|--------|-----|
-| Local plugin bundle | Primary, not yet scaffolded | Normal local development and dogfooding after plugin layout exists |
+| Local plugin bundle | Primary, not yet scaffolded | Generated at `plugins/ai-agent-meta-harness/` for local development and dogfooding |
 | Direct skill copy | Development fallback | Fast iteration on skill text only |
 | Marketplace/plugin bundle | Future release path | Published distribution after plugin layout stabilizes |
 | `skill-installer` | Compatibility investigation | Skill-only install if safe degraded behavior is documented |

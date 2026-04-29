@@ -56,9 +56,9 @@ Status of paths:
 
 Follow-up work:
 
-- Scaffold the plugin layout with `.codex-plugin/plugin.json`.
-- Define the canonical source before moving files: plugin-canonical with generated adapter mirrors, or adapter-canonical with generated plugin files. Manual dual-editing is not allowed.
-- Add or extend a drift check so canonical and generated/mirrored files cannot silently diverge.
+- Scaffold `plugins/ai-agent-meta-harness/.codex-plugin/plugin.json`.
+- Implement adapter-canonical sync from `adapters/codex/` into `plugins/ai-agent-meta-harness/` using `python3 scripts/sync-codex-plugin.py`.
+- Add or extend a drift check so generated plugin files cannot silently diverge from canonical adapter files.
 - Add a local plugin install smoke test.
 - Decide how the fallback direct-copy path reports missing hooks/checker assets.
 - Keep README install instructions aligned with the plugin layout.
@@ -69,10 +69,10 @@ Decision: Codex support should become a local plugin bundle. The remaining quest
 
 Potential improvement:
 
-- Add `.codex-plugin/plugin.json` under the chosen plugin root.
+- Add `.codex-plugin/plugin.json` under `plugins/ai-agent-meta-harness/`.
 - Include skills, Codex hook templates, protection checker templates, AGENTS template, and example docs.
-- Choose the plugin root and source-of-truth direction before scaffolding files.
-- Define which files are canonical and which are generated or mirrored, then add a drift check for those paths.
+- Keep `adapters/codex/` canonical and generate plugin files from it.
+- Define the generated path mapping, then add a drift check for those paths.
 - Keep direct skill-copy installation only as a documented degraded path for skill text iteration.
 
 ### 6. Standardize Codex verify command discovery
@@ -180,16 +180,20 @@ Potential improvement:
 - Treat skipped minimum local protection as incomplete/unsafe, not merely skipped.
 - Treat skipped CI as local-only with explicit reason.
 
-### 16. Resolve Codex plugin layout details before scaffolding
+### 16. Implement the Codex plugin layout decision
 
-The distribution decision passed multi-review at 9/10 because the primary path is correct but the exact plugin layout is still unimplemented.
+Decision: use `plugins/ai-agent-meta-harness/` as the generated local plugin root, with `adapters/codex/` remaining canonical.
 
-Potential improvement:
+Follow-up work:
 
-- Choose the plugin root path, for example `plugins/ai-agent-meta-harness/` or another repo-local plugin directory.
-- Choose the canonical direction explicitly before creating files: adapter-canonical with generated plugin files, or plugin-canonical with generated adapter mirrors.
-- Define the generator or sync command that materializes generated/mirrored files.
-- Extend compatibility checks so generated/mirrored plugin files cannot drift from their source.
+- Scaffold `plugins/ai-agent-meta-harness/.codex-plugin/plugin.json`.
+- Implement `python3 scripts/sync-codex-plugin.py` to generate plugin files from canonical adapter files.
+- Define sync modes, at minimum `--write` to materialize files and `--check` to fail on drift without modifying files.
+- Use `--check` from pre-commit and release checks; it should fail when generated files are missing, stale, extra, or mapped to no canonical source.
+- Define the generated path mapping for skills, hook templates, protection checker templates, AGENTS template, and examples.
+- Decide how `.codex-plugin/plugin.json` metadata is authored versus generated.
+- Extend compatibility checks so generated plugin files cannot drift from `adapters/codex/`.
+- Consolidate overlapping plugin implementation backlog items once scaffolding begins, so item 4 tracks distribution execution and item 16 tracks layout/sync details.
 - Document the local plugin install command once the root exists.
 
 ### 17. Define Codex plugin marketplace metadata policy
