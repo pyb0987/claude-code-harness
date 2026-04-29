@@ -67,6 +67,42 @@ Potential improvement:
 - Include a minimum `program.md ## Rejection History` example.
 - Clarify that episode traces may be written multiple times in one session.
 
+### 7. Define documentation abstraction boundaries
+
+The repository now has a shared core plus runtime adapters. The boundary should be made explicit so future work does not duplicate methodology across adapters.
+
+Potential improvement:
+
+- Core owns what/why: methodology principles, trace semantics, verification policy, general failure recording, and agent-agnostic workflow contracts.
+- Adapters own how: runtime-specific instruction files, hook schemas, permission models, install paths, tool surfaces, and examples.
+- Add a short document-writing rule that says adapter docs may reference core rules but should not fork them unless runtime behavior truly differs.
+- During review, flag copied methodology blocks in adapters as possible drift risks.
+
+### 8. Plan compatibility mirror removal
+
+Temporary top-level Claude paths are currently retained as compatibility mirrors. They need a removal plan before they become permanent accidental API.
+
+Potential improvement:
+
+- Define the removal milestone or release window.
+- Add a warning strategy before removal, such as README notice, release note, or pre-commit warning period.
+- Decide whether old install commands should fail fast with guidance or keep thin redirect docs.
+- Document the migration path for users with scripts that still read `docs/`, `commands/`, or `skills/`.
+
+### 9. Define repository release checklist
+
+Release readiness should be verified with a stable checklist instead of ad hoc manual review.
+
+Potential improvement:
+
+- Mirror sync check.
+- README URL and repository-name check.
+- Skill frontmatter validation.
+- Adapter install smoke tests.
+- Old Claude install command smoke test while compatibility mirrors exist.
+- Codex install smoke test for the chosen primary distribution path.
+- Release note entry for adapter/core behavior changes.
+
 ## Current Status
 
 - Source review: strict multi-review of `adapters/codex/skills/harness-engineer/SKILL.md`.
