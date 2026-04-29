@@ -7,6 +7,7 @@ Codex support is an adapter over the shared harness core, not a fork of the meth
 The first Codex adapter layer provides:
 
 - `init-codex-harness` skill for project bootstrap
+- `harness-engineer` skill for Codex harness evolution
 - `AGENTS.md` template for project-local instructions
 - Trace filesystem guidance using `.harness/traces/` by default
 - Explicit verify-command discipline in place of Claude Code `PostToolUse` hooks

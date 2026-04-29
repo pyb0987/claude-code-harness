@@ -1,6 +1,6 @@
 ---
 name: init-codex-harness
-description: "Initialize or update a Codex-compatible harness for a project using the shared Code Harness methodology. Use when the user asks to apply codex-harness, initialize a harness for Codex, convert a Claude harness to Codex, or set up trace/search-set driven project instructions."
+description: "Initialize or update a Codex-compatible harness for a project using the shared AI Agent Meta-Harness methodology. Use when the user asks to apply codex-harness, initialize a harness for Codex, convert a Claude harness to Codex, or set up trace/search-set driven project instructions."
 ---
 
 # Init Codex Harness

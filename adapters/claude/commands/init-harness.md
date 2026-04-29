@@ -161,17 +161,17 @@ Check whether `multi-review` is installed as a global skill at `~/.claude/skills
 - **If installed**: confirmed. The harness can invoke `/multi-review` for qualitative multi-perspective decisions.
 - **If missing**: instruct the user to install it. Two paths:
 
-  **Path A — claude-code-harness already cloned locally** (the typical case if the user is running /init-harness from this very repo):
+  **Path A — ai-agent-meta-harness already cloned locally** (the typical case if the user is running /init-harness from this very repo):
   ```bash
-  # Replace HARNESS_REPO with the path to your local claude-code-harness checkout
+  # Replace HARNESS_REPO with the path to your local ai-agent-meta-harness checkout
   cp -r HARNESS_REPO/adapters/claude/skills/multi-review ~/.claude/skills/multi-review
   ```
 
-  **Path B — fresh install** (no local checkout of claude-code-harness):
+  **Path B — fresh install** (no local checkout of ai-agent-meta-harness):
   ```bash
   # Replace the URL with the upstream repo or your own fork
-  git clone <claude-code-harness-git-url> ~/code/claude-code-harness
-  cp -r ~/code/claude-code-harness/adapters/claude/skills/multi-review ~/.claude/skills/multi-review
+  git clone <ai-agent-meta-harness-git-url> ~/code/ai-agent-meta-harness
+  cp -r ~/code/ai-agent-meta-harness/adapters/claude/skills/multi-review ~/.claude/skills/multi-review
   ```
   If you do not know the URL, ask the user — there is no hardcoded upstream because forks are expected. The repo containing this very `init-harness.md` is the source of truth.
 

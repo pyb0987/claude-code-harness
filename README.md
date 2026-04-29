@@ -1,4 +1,4 @@
-# Code Harness
+# AI Agent Meta-Harness
 
 A practical framework for building reliable AI-assisted development environments across coding agents, inspired by the [Meta-Harness](https://arxiv.org/abs/2603.28052) paper (Lee et al., Stanford 2026).
 
@@ -47,8 +47,8 @@ adapters/
 
 ```bash
 # Clone the repo
-git clone https://github.com/pyb0987/claude-code-harness.git
-cd claude-code-harness
+git clone https://github.com/pyb0987/ai-agent-meta-harness.git
+cd ai-agent-meta-harness
 
 # Copy core docs (loaded every session)
 mkdir -p ~/.claude/rules/common
@@ -102,6 +102,7 @@ Initial Codex adapter contents:
 |-----------|------|
 | Bootstrap skill | `adapters/codex/skills/init-codex-harness/SKILL.md` |
 | Project instruction template | `adapters/codex/skills/init-codex-harness/assets/AGENTS.md.template` |
+| Harness-engineer skill | `adapters/codex/skills/harness-engineer/SKILL.md` |
 | Multi-review skill | `adapters/codex/skills/multi-review/SKILL.md` |
 
 Suggested local install while developing the adapter:
