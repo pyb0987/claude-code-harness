@@ -45,6 +45,8 @@ This skill has two modes:
 
 If the user asks only for a plan or review, stop at the plan. Do not edit files or start experiments unless asked.
 
+Before starting Setup Mode or Run Mode, define `Done when: ...` as a specific, verifiable completion condition.
+
 ## Setup Mode
 
 ### Step 1: Inspect and Bound the Experiment
@@ -80,6 +82,8 @@ Create a project-specific evaluator with these properties:
 - includes a timeout or bounded execution path
 - compares against a single source of truth baseline, normally `best_score.txt`
 - atomically updates the baseline only on `ADOPT`
+
+`ADOPT` is the only adoption outcome. `REJECT_GUARD`, `REJECT_THRESHOLD`, and `ERROR` are non-adoption outcomes and must not update the baseline.
 
 Minimum shape:
 
@@ -196,13 +200,18 @@ If `AGENTS.md` would become too long, put details in `docs/autoresearch.md` and 
 
 Codex does not consume Claude Code hooks, but Codex has its own hook system. Use Codex hooks as the first guardrail, backed by project-local scripts, git hooks, and CI for hard enforcement.
 
-Required protection bundle:
+Protection tiers:
+
+- Minimum local tier: `.harness/autoresearch-protected.txt`, `scripts/check-autoresearch-protected.py`, Codex `PreToolUse`/`PermissionRequest` hooks, and a local pre-commit hook all installed and smoke-tested.
+- Shared repository tier: add a CI required check that calls the same checker. If CI is unavailable, record the skipped reason and treat the project as local-only protection until CI exists.
+- Structural tier: when generated evaluator dependencies or duplicated metric definitions exist, move toward single source + generator + drift check.
+
+Required protection bundle for the minimum local tier:
 
 - `.harness/autoresearch-protected.txt`: tracked list of immutable evaluator files, dependencies, and protected data paths
 - `scripts/check-autoresearch-protected.py`: one shared checker used by Codex hooks, pre-commit, and CI
 - `.codex/config.toml` or `.codex/hooks.json`: Codex `PreToolUse` and `PermissionRequest` hooks that call the shared checker
 - `.githooks/pre-commit` or equivalent repo hook that calls the shared checker before commits
-- CI required check that calls the shared checker on pull requests or protected branches
 - `AGENTS.md` instruction that names the protection command and says experiments must not bypass it
 
 Codex hook policy:
@@ -252,6 +261,51 @@ The shared checker should support three modes:
 - Pre-commit mode: inspect staged and working-tree diffs for protected paths and exit non-zero on violation.
 - CI mode: compare the proposed change against the merge base and exit non-zero on protected-path edits.
 
+Minimum checker contract:
+
+- Protected paths are exact relative paths or path prefixes ending in `/`; do not use loose substring matching.
+- Hook stdin includes `hook_event_name`, `tool_name`, and `tool_input`. For `apply_patch`, inspect `tool_input.command`; for `Bash`, inspect `tool_input.command`; for MCP tools, inspect serialized `tool_input`.
+- On violation in `PreToolUse` hook mode, print JSON to stdout and exit `0`:
+
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "Autoresearch evaluator boundary violation: protected path evaluate.py would be modified."
+  }
+}
+```
+
+- On violation in `PermissionRequest` hook mode, print JSON to stdout and exit `0`:
+
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PermissionRequest",
+    "decision": {
+      "behavior": "deny",
+      "message": "Autoresearch evaluator boundary violation: protected path evaluate.py would be modified."
+    }
+  }
+}
+```
+
+- Do not use the legacy `{"decision": "block"}` shape for `PermissionRequest`; it is not the event-specific deny decision.
+- On violation in pre-commit or CI mode, print the protected paths to stderr and exit non-zero.
+- On clean input, exit `0` with no blocking decision.
+
+Minimum smoke tests:
+
+```bash
+printf '%s\n' '{"hook_event_name":"PreToolUse","tool_name":"apply_patch","tool_input":{"command":"*** Begin Patch\n*** Update File: evaluate.py\n@@\n-pass\n+pass\n*** End Patch"}}' | python3 scripts/check-autoresearch-protected.py --codex-pre-tool-use
+printf '%s\n' '{"hook_event_name":"PermissionRequest","tool_name":"Bash","tool_input":{"command":"python3 - <<\u0027PY\u0027\nopen(\u0027evaluate.py\u0027, \u0027w\u0027).write(\u0027x\u0027)\nPY","description":"requesting escalation to write evaluator"}}' | python3 scripts/check-autoresearch-protected.py --codex-permission-request
+python3 scripts/check-autoresearch-protected.py --pre-commit
+python3 scripts/check-autoresearch-protected.py --ci
+```
+
+The `PreToolUse` command must return `hookSpecificOutput.permissionDecision: "deny"` when `evaluate.py` is protected. The `PermissionRequest` command must return `hookSpecificOutput.decision.behavior: "deny"`. The pre-commit and CI commands must PASS on a clean tree and FAIL when a protected path is staged or changed.
+
 Protection must cover the evaluator file and project modules/data it imports. Protecting only `evaluate.py` is insufficient if metric logic lives elsewhere.
 
 Do not silently overwrite existing Codex hooks, git hooks, or CI. If enforcement files exist, inspect and merge; if behavior differs structurally, show the diff and ask before replacing.
@@ -280,12 +334,15 @@ Run Mode executes experiments when the autoresearch files already exist.
 4. Formulate a one-line hypothesis that does not duplicate rejection history.
 5. Modify only mutable genome files.
 6. Commit the experiment change with `experiment: {short hypothesis}`.
-7. Run `evaluate.py` and parse JSON stdout.
-8. On `ADOPT`, keep the commit and append the full evaluator result to `experiments.jsonl`.
-9. On `REJECT_*` or `ERROR`, preserve the diff/evaluator JSON when recording triggers apply, then revert according to the current Codex permission policy.
-10. Repeat until a termination condition is reached.
+7. Run `evaluate.py` and capture the raw JSON stdout before any revert or cleanup.
+8. Append the full evaluator result to `experiments.jsonl` for every verdict.
+9. Write any required episode trace immediately if this experiment hits an ADOPT, axis exhaustion, termination, or 10-experiment milestone.
+10. On `ADOPT`, keep the genome commit, keep the `best_score.txt` update from `evaluate.py`, then amend the experiment commit or create a follow-up record commit that includes `best_score.txt`, `experiments.jsonl`, and trace artifacts.
+11. On `REJECT_GUARD`, `REJECT_THRESHOLD`, or `ERROR`, preserve the genome diff and evaluator JSON when recording triggers apply, revert the genome commit according to the current Codex permission policy, then commit or otherwise durably save `experiments.jsonl` and any trace/handoff updates.
+12. End each experiment with a clean worktree or an explicit handoff note explaining the dirty files.
+13. Repeat until a termination condition is reached.
 
-Destructive revert note: if `git reset --hard HEAD~1` requires approval or conflicts with current runtime policy, request approval or stop with the exact command and preserved evidence. Never revert before preserving required diagnostic context.
+Destructive revert note: if `git reset --hard HEAD~1` requires approval or conflicts with current runtime policy, request approval or stop with the exact command and preserved evidence. Never revert before preserving required diagnostic context and evaluator JSON.
 
 ### Logging Requirements
 
@@ -366,6 +423,7 @@ For Setup Mode:
 ### Verification
 - Evaluator smoke test: PASS | FAIL | SKIPPED
 - Protection check: PASS | FAIL | SKIPPED
+- Checker modes installed: Codex hook | pre-commit | CI, with skipped reasons
 - Notes: {sandbox/permission/network constraints}
 ```
 
@@ -377,7 +435,9 @@ For Run Mode:
 - ADOPT: {count}
 - REJECT: {count}
 - Current baseline: see `best_score.txt`
+- Experiment commits or record commits: {shas}
 - Episode traces written: {paths}
+- Final git state: clean | dirty, with reason
 - Handoff: {path or not needed}
 
 ### Next
