@@ -180,6 +180,41 @@ Potential improvement:
 - Treat skipped minimum local protection as incomplete/unsafe, not merely skipped.
 - Treat skipped CI as local-only with explicit reason.
 
+### 16. Resolve Codex plugin layout details before scaffolding
+
+The distribution decision passed multi-review at 9/10 because the primary path is correct but the exact plugin layout is still unimplemented.
+
+Potential improvement:
+
+- Choose the plugin root path, for example `plugins/ai-agent-meta-harness/` or another repo-local plugin directory.
+- Choose the canonical direction explicitly before creating files: adapter-canonical with generated plugin files, or plugin-canonical with generated adapter mirrors.
+- Define the generator or sync command that materializes generated/mirrored files.
+- Extend compatibility checks so generated/mirrored plugin files cannot drift from their source.
+- Document the local plugin install command once the root exists.
+
+### 17. Define Codex plugin marketplace metadata policy
+
+The marketplace path is future work, but plugin metadata choices can leak into local plugin structure if left implicit.
+
+Potential improvement:
+
+- Decide plugin name, display name, category, installation policy, and authentication policy.
+- Keep marketplace metadata out of the local-only path unless needed for Codex UI ordering.
+- Document when `.agents/plugins/marketplace.json` should be generated or updated.
+- Avoid publishing-oriented metadata churn while the local plugin layout is still stabilizing.
+
+### 18. Add local plugin install smoke test
+
+The local plugin path cannot be considered ready until installation can be checked mechanically.
+
+Potential improvement:
+
+- Add a smoke test that validates `.codex-plugin/plugin.json` exists and parses.
+- Verify expected skills are visible from the plugin bundle.
+- Verify hook/checker assets are present in the bundle.
+- Verify direct skill-copy fallback emits or documents a degraded-safety warning.
+- Run the smoke test as part of the repository release checklist.
+
 ## Current Status
 
 - Source reviews: strict multi-review of `adapters/codex/skills/harness-engineer/SKILL.md` and `adapters/codex/skills/autoresearch/SKILL.md`.
