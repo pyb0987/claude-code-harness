@@ -17,6 +17,7 @@ The first Codex adapter layer provides:
 - Shared principles stay in `core/methodology.md` and `core/reference.md`.
 - Codex-specific behavior lives here: skill trigger wording, project instruction filenames, verification workflow, and sub-agent usage.
 - Claude Code hook schemas are not copied into Codex. Codex enforcement should be implemented through CI, git hooks, project-local scripts, or future Codex plugin hooks.
+- Non-blocking follow-up work is tracked in `adapters/codex/backlog.md`.
 
 ## Local Development Install
 
