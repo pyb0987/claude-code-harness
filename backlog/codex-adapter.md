@@ -49,19 +49,24 @@ Decision: use a **local Codex plugin bundle** as the primary distribution path.
 
 Status of paths:
 
-- Local plugin bundle: primary path for normal local development and dogfooding.
+- Local plugin bundle: primary bundle target for normal local development and dogfooding; activation smoke test still pending.
 - Direct skill copy: development fallback for fast skill text iteration only.
 - Marketplace/plugin bundle: future release path after local plugin layout stabilizes.
 - `skill-installer`: compatibility investigation for skill-only degraded installs.
 
-Follow-up work:
+Implemented foundation:
 
-- Scaffold `plugins/ai-agent-meta-harness/.codex-plugin/plugin.json`.
-- Implement adapter-canonical sync from `adapters/codex/` into `plugins/ai-agent-meta-harness/` using `python3 scripts/sync-codex-plugin.py`.
-- Add or extend a drift check so generated plugin files cannot silently diverge from canonical adapter files.
-- Add a local plugin install smoke test.
-- Decide how the fallback direct-copy path reports missing hooks/checker assets.
-- Keep README install instructions aligned with the plugin layout.
+- `plugins/ai-agent-meta-harness/.codex-plugin/plugin.json` is generated from canonical adapter metadata.
+- `scripts/sync-codex-plugin.py --write` materializes the local plugin bundle from `adapters/codex/`.
+- `scripts/sync-codex-plugin.py --check` fails on missing, stale, extra, invalid, binary-different, or semantically empty required plugin surfaces.
+- `.githooks/pre-commit` runs the plugin drift check alongside compatibility mirror checks.
+- README install guidance now points to the generated local plugin bundle first, with direct skill copy as a degraded fallback.
+
+Remaining follow-up work:
+
+- Add a real local plugin install smoke test once the exact Codex local-plugin activation workflow is documented.
+- Decide how the fallback direct-copy path reports missing hooks/checker assets at runtime.
+- Keep README install instructions aligned as hook/checker assets are added to the plugin bundle.
 
 ### 5. Define Codex plugin bundle scope
 
@@ -180,21 +185,17 @@ Potential improvement:
 - Treat skipped minimum local protection as incomplete/unsafe, not merely skipped.
 - Treat skipped CI as local-only with explicit reason.
 
-### 16. Implement the Codex plugin layout decision
+### 16. Extend the Codex plugin layout as assets grow
 
-Decision: use `plugins/ai-agent-meta-harness/` as the generated local plugin root, with `adapters/codex/` remaining canonical.
+Decision implemented: `plugins/ai-agent-meta-harness/` is the generated local plugin root, with `adapters/codex/` remaining canonical. `scripts/sync-codex-plugin.py` owns `--write` and `--check`, and pre-commit runs the check.
 
-Follow-up work:
+Remaining follow-up work:
 
-- Scaffold `plugins/ai-agent-meta-harness/.codex-plugin/plugin.json`.
-- Implement `python3 scripts/sync-codex-plugin.py` to generate plugin files from canonical adapter files.
-- Define sync modes, at minimum `--write` to materialize files and `--check` to fail on drift without modifying files.
-- Use `--check` from pre-commit and release checks; it should fail when generated files are missing, stale, extra, or mapped to no canonical source.
-- Define the generated path mapping for skills, hook templates, protection checker templates, AGENTS template, and examples.
-- Decide how `.codex-plugin/plugin.json` metadata is authored versus generated.
-- Extend compatibility checks so generated plugin files cannot drift from `adapters/codex/`.
-- Consolidate overlapping plugin implementation backlog items once scaffolding begins, so item 4 tracks distribution execution and item 16 tracks layout/sync details.
-- Document the local plugin install command once the root exists.
+- Add hook templates and protection checker templates to the generated path mapping when those canonical adapter assets exist.
+- Add examples to the generated path mapping when Codex examples are introduced.
+- Decide whether `.codex-plugin/plugin.json` should remain hand-authored canonical metadata or become generated from a smaller metadata source.
+- Document and smoke-test the exact local plugin activation command before calling the plugin path fully installed.
+- Revisit marketplace metadata only after the local plugin activation path is proven.
 
 ### 17. Define Codex plugin marketplace metadata policy
 

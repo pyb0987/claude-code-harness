@@ -110,13 +110,20 @@ Initial Codex adapter contents:
 | Harness-engineer skill | `adapters/codex/skills/harness-engineer/SKILL.md` |
 | Autoresearch skill | `adapters/codex/skills/autoresearch/SKILL.md` |
 | Multi-review skill | `adapters/codex/skills/multi-review/SKILL.md` |
+| Local plugin bundle | `plugins/ai-agent-meta-harness/` |
 
-Suggested local install while developing the adapter:
+Suggested local plugin workflow while developing the adapter:
+
+```bash
+python3 scripts/sync-codex-plugin.py --write
+python3 scripts/sync-codex-plugin.py --check
+```
+
+The generated plugin bundle lives at `plugins/ai-agent-meta-harness/`. The exact Codex local-plugin activation command is pending a repo smoke test, so direct skill copy remains the executable degraded fallback for fast skill text iteration:
 
 ```bash
 mkdir -p ~/.codex/skills
 cp -r adapters/codex/skills/* ~/.codex/skills/
-# Optional while developing from the repo: keep adapters/codex/templates as a compatibility mirror for humans.
 ```
 
 Use the skill by asking Codex to "init codex harness" or "apply codex-harness to this project". Use Codex multi-review by asking for a multi-perspective review.
@@ -137,7 +144,7 @@ Compatibility mirror mapping:
 | `skills/*` | `adapters/claude/skills/*` |
 | `adapters/codex/templates/AGENTS.md.template` | `adapters/codex/skills/init-codex-harness/assets/AGENTS.md.template` |
 
-Run `python3 scripts/check-compat-mirrors.py` before committing changes that touch mirrored paths.
+Run `python3 scripts/check-compat-mirrors.py` and `python3 scripts/sync-codex-plugin.py --check` before committing changes that touch mirrored paths or the Codex adapter.
 
 ### Pre-commit Hook
 
@@ -147,7 +154,7 @@ Enable the tracked git hook in local clones:
 git config core.hooksPath .githooks
 ```
 
-The pre-commit hook runs `python3 scripts/check-compat-mirrors.py` so temporary compatibility mirrors cannot silently drift from their canonical files.
+The pre-commit hook runs `python3 scripts/check-compat-mirrors.py` and `python3 scripts/sync-codex-plugin.py --check` so temporary compatibility mirrors and the generated Codex plugin cannot silently drift from their canonical files.
 
 ## How It Works
 

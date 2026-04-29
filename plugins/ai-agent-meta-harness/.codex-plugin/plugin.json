@@ -1,0 +1,38 @@
+{
+  "name": "ai-agent-meta-harness",
+  "version": "0.1.0",
+  "description": "Codex adapter for the AI Agent Meta-Harness methodology.",
+  "author": {
+    "name": "AI Agent Meta-Harness maintainers",
+    "url": "https://github.com/pyb0987/ai-agent-meta-harness"
+  },
+  "homepage": "https://github.com/pyb0987/ai-agent-meta-harness/tree/main/adapters/codex",
+  "repository": "https://github.com/pyb0987/ai-agent-meta-harness",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "harness",
+    "agents",
+    "meta-harness",
+    "autoresearch"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AI Agent Meta-Harness",
+    "shortDescription": "Codex skills for trace-driven agent harness evolution.",
+    "longDescription": "Codex adapter skills and templates for applying AI Agent Meta-Harness methodology without forking the shared core.",
+    "developerName": "AI Agent Meta-Harness maintainers",
+    "category": "Productivity",
+    "capabilities": [
+      "Write",
+      "Review"
+    ],
+    "websiteURL": "https://github.com/pyb0987/ai-agent-meta-harness",
+    "defaultPrompt": [
+      "Apply codex-harness to this project.",
+      "Run multi-review on this harness change.",
+      "Set up autoresearch for this metric."
+    ],
+    "brandColor": "#2563EB"
+  }
+}
