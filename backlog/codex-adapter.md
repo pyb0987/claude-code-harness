@@ -57,7 +57,8 @@ Status of paths:
 Follow-up work:
 
 - Scaffold the plugin layout with `.codex-plugin/plugin.json`.
-- Move or mirror skills, hooks, scripts, assets, and templates into the plugin bundle.
+- Define the canonical source before moving files: plugin-canonical with generated adapter mirrors, or adapter-canonical with generated plugin files. Manual dual-editing is not allowed.
+- Add or extend a drift check so canonical and generated/mirrored files cannot silently diverge.
 - Add a local plugin install smoke test.
 - Decide how the fallback direct-copy path reports missing hooks/checker assets.
 - Keep README install instructions aligned with the plugin layout.
@@ -70,7 +71,8 @@ Potential improvement:
 
 - Add `.codex-plugin/plugin.json` under the chosen plugin root.
 - Include skills, Codex hook templates, protection checker templates, AGENTS template, and example docs.
-- Define which files are canonical in `adapters/codex/` and which are generated or mirrored into the plugin layout.
+- Choose the plugin root and source-of-truth direction before scaffolding files.
+- Define which files are canonical and which are generated or mirrored, then add a drift check for those paths.
 - Keep direct skill-copy installation only as a documented degraded path for skill text iteration.
 
 ### 6. Standardize Codex verify command discovery
@@ -181,5 +183,5 @@ Potential improvement:
 ## Current Status
 
 - Source reviews: strict multi-review of `adapters/codex/skills/harness-engineer/SKILL.md` and `adapters/codex/skills/autoresearch/SKILL.md`.
-- Last reviewed baseline: `987dca0 fix: tighten codex harness engineer guardrails`.
+- Last reviewed baselines are the commits linked from the relevant review notes or release notes; avoid keeping a single stale baseline here.
 - Core follow-ups have been moved to `backlog/core.md` to avoid duplicating methodology work across adapters.

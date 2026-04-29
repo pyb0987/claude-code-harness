@@ -26,11 +26,13 @@ Primary distribution path: **local Codex plugin bundle**.
 
 Rationale: the Codex adapter now includes more than standalone skill text. Autoresearch protection needs hooks, checker scripts, templates, and examples to travel together. A plugin bundle is the smallest distribution unit that can carry those assets without turning the adapter into a fork of the core methodology.
 
+Source-of-truth rule: `adapters/codex/` remains the canonical editable adapter source until the plugin layout is scaffolded. The first plugin implementation must choose and document one of two drift-safe paths before copying files: either the plugin becomes canonical and adapter paths become generated mirrors, or `adapters/codex/` stays canonical and plugin files are generated from it. Manual dual-editing is not allowed.
+
 Supported paths:
 
 | Path | Status | Use |
 |------|--------|-----|
-| Local plugin bundle | Primary | Normal local development and dogfooding |
+| Local plugin bundle | Primary, not yet scaffolded | Normal local development and dogfooding after plugin layout exists |
 | Direct skill copy | Development fallback | Fast iteration on skill text only |
 | Marketplace/plugin bundle | Future release path | Published distribution after plugin layout stabilizes |
 | `skill-installer` | Compatibility investigation | Skill-only install if safe degraded behavior is documented |
