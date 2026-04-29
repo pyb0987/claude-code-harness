@@ -33,15 +33,22 @@ Potential improvement:
 
 ### 3. Harden Codex hook enforcement templates
 
-Codex has project/user hooks, but hook interception should be treated as a guardrail rather than the only enforcement boundary. Adapter docs should keep concrete templates aligned with current Codex hook behavior.
+Decision implemented: ship template-only Codex hook, pre-commit, and CI guardrails that call the shared autoresearch checker without advertising active runtime hooks in the plugin manifest.
 
-Potential improvement:
+Implemented foundation:
 
-- Level 1 warning: AGENTS.md reminder plus explicit verify command.
-- Level 2 guardrail: Codex `PreToolUse` and `PermissionRequest` hooks calling a shared checker.
-- Level 2 hard block: project-local script, pre-commit hook, and CI using the same checker.
-- Level 3 structural impossibility: single source, generator, protected generated derivatives, and CI/git-hook drift check.
-- Revisit templates when Codex hook interception semantics change.
+- `adapters/codex/templates/hooks/codex-hooks.json.template` calls the checker from Codex `PreToolUse` and `PermissionRequest`.
+- `adapters/codex/templates/hooks/pre-commit-autoresearch-protected.sh` provides the local hard-block layer.
+- `adapters/codex/templates/hooks/github-actions-autoresearch-protected.yml` provides a pull-request CI guardrail with full checkout history and explicit `BASE_REF`.
+- `adapters/codex/templates/hooks/agents-autoresearch-protection.md` provides the Level 1 project-instruction reminder layer.
+- `adapters/codex/tests/test_hook_templates.py` validates that templates call the shared checker in the expected modes.
+- The plugin sync map generates these templates into `plugins/ai-agent-meta-harness/templates/hooks/`.
+
+Remaining follow-up work:
+
+- Add install/smoke-test docs that show exactly where to copy each template in a target project.
+- Add runtime hook config under `adapters/codex/hooks/` and manifest `hooks` only after local plugin activation and tool-event coverage are smoke-tested.
+- Revisit templates when Codex hook interception semantics change, especially whether file-edit tools emit `PreToolUse`.
 
 ### 4. Implement the chosen Codex distribution path
 
@@ -81,7 +88,7 @@ Implemented v0 scope:
 
 Remaining follow-up work:
 
-- Add Codex hook templates under `adapters/codex/templates/hooks/` and runtime hook config under `adapters/codex/hooks/` only after smoke test; checker and protected-path reference assets now exist.
+- Runtime hook config under `adapters/codex/hooks/` and manifest `hooks` field are still gated on a local activation smoke test and verified Codex tool-event coverage; template hook/pre-commit/CI/AGENTS assets already exist under `adapters/codex/templates/hooks/`.
 - Add completed Codex examples after a real project dry run.
 - Expand `plugin.json` beyond `skills` only after runtime assets are executable and smoke-tested.
 - Keep marketplace metadata deferred until local plugin activation is proven.
@@ -163,9 +170,8 @@ Implemented foundation:
 
 Remaining follow-up work:
 
-- Add Codex hook template files that call the checker.
-- Add mechanical smoke assertions for the hook JSON shapes in setup docs or scripts.
-- Add a CI template that chooses the comparison base explicitly for GitHub Actions and non-GitHub CI.
+- Add install/smoke-test docs that wire the checker and templates into a target project.
+- Add a non-GitHub CI variant or document how to set `BASE_REF` outside GitHub Actions.
 
 ### 13. Make Codex hook smoke tests mechanically assert output
 
@@ -203,7 +209,7 @@ Decision implemented: `plugins/ai-agent-meta-harness/` is the generated local pl
 
 Remaining follow-up work:
 
-- Add hook templates to the generated path mapping when canonical template assets exist; checker and protected-path template mapping are already implemented.
+- Add runtime hook config under `adapters/codex/hooks/` and manifest `hooks` only after local plugin activation and tool-event coverage are smoke-tested; template hook/pre-commit/CI/AGENTS mappings are already implemented.
 - Add examples to the generated path mapping when Codex examples are introduced.
 - Decide whether `.codex-plugin/plugin.json` should remain hand-authored canonical metadata or become generated from a smaller metadata source.
 - Document and smoke-test the exact local plugin activation command before calling the plugin path fully installed.

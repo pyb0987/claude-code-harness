@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/scripts/check-autoresearch-protected.py\" --codex-pre-tool-use",
+            "statusMessage": "Checking autoresearch protected files"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Bash|apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/scripts/check-autoresearch-protected.py\" --codex-permission-request",
+            "statusMessage": "Checking autoresearch escalation request"
+          }
+        ]
+      }
+    ]
+  }
+}

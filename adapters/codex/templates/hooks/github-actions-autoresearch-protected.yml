@@ -1,0 +1,19 @@
+# Template workflow job for GitHub Actions.
+# Copy into an existing workflow after installing scripts/check-autoresearch-protected.py
+# and .harness/autoresearch-protected.txt in the project.
+name: autoresearch-protection
+
+on:
+  pull_request:
+
+jobs:
+  autoresearch-protected-paths:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check autoresearch protected paths
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: python3 scripts/check-autoresearch-protected.py --ci

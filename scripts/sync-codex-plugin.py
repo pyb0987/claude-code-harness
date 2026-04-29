@@ -25,7 +25,14 @@ REQUIRED_SKILL_FILES = (
     "init-codex-harness/SKILL.md",
     "multi-review/SKILL.md",
 )
-REQUIRED_TEMPLATE_FILES = ("AGENTS.md.template", "autoresearch-protected.txt")
+REQUIRED_TEMPLATE_FILES = (
+    "AGENTS.md.template",
+    "autoresearch-protected.txt",
+    "hooks/codex-hooks.json.template",
+    "hooks/pre-commit-autoresearch-protected.sh",
+    "hooks/github-actions-autoresearch-protected.yml",
+    "hooks/agents-autoresearch-protection.md",
+)
 REQUIRED_SCRIPT_FILES = ("check-autoresearch-protected.py",)
 
 

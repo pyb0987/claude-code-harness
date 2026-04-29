@@ -214,6 +214,15 @@ Required protection bundle for the minimum local tier:
 - `.githooks/pre-commit` or equivalent repo hook that calls the shared checker before commits
 - `AGENTS.md` instruction that names the protection command and says experiments must not bypass it
 
+Bundled Codex adapter assets provide starting templates for this bundle:
+
+- `templates/autoresearch-protected.txt` -> `.harness/autoresearch-protected.txt`
+- `scripts/check-autoresearch-protected.py` -> `scripts/check-autoresearch-protected.py`
+- `templates/hooks/codex-hooks.json.template` -> `.codex/hooks.json` or the active Codex hook config layer
+- `templates/hooks/pre-commit-autoresearch-protected.sh` -> `.githooks/pre-commit` or an existing pre-commit hook
+- `templates/hooks/github-actions-autoresearch-protected.yml` -> a pull-request workflow or job in `.github/workflows/`
+- `templates/hooks/agents-autoresearch-protection.md` -> the Autoresearch section of `AGENTS.md` or linked project docs
+
 Codex hook policy:
 
 - Enable hooks with `[features] codex_hooks = true` in `.codex/config.toml` or the active Codex config layer.

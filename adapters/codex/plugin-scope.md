@@ -9,7 +9,7 @@ only the Codex runtime adapter surfaces needed to apply that methodology.
 | Stage | Bundle contents | Status |
 |-------|-----------------|--------|
 | v0 scaffold | Skills, AGENTS template, README, plugin manifest, scope document | Implemented |
-| v1 protection | Autoresearch checker and protected-path template implemented; hook templates and install/smoke-test docs planned | Partial |
+| v1 protection | Checker, protected-path template, AGENTS reminder snippet, Codex hook template, pre-commit template, and CI template implemented; install/smoke-test docs planned | Partial |
 | Later release | Examples, marketplace metadata, richer install validation, optional generated assets | Planned |
 
 ## Current Generated Contents
@@ -25,6 +25,10 @@ The generated plugin at `plugins/ai-agent-meta-harness/` currently includes:
 - `skills/multi-review/SKILL.md`
 - `templates/AGENTS.md.template`
 - `templates/autoresearch-protected.txt`
+- `templates/hooks/codex-hooks.json.template`
+- `templates/hooks/pre-commit-autoresearch-protected.sh`
+- `templates/hooks/github-actions-autoresearch-protected.yml`
+- `templates/hooks/agents-autoresearch-protection.md`
 - `scripts/check-autoresearch-protected.py`
 
 The sync map copies only explicitly listed template and script files. Future templates or scripts must be added to this scope document and the sync map before they ship in the generated plugin.
@@ -49,11 +53,14 @@ Do not include:
 - Project-specific traces, evaluator outputs, or local secrets.
 - Marketplace metadata until local activation is smoke-tested.
 
-## Planned v1 Canonical Paths
+## v1 Canonical Path Policy
 
 | Asset class | Canonical source | Generated plugin path | Notes |
 |-------------|------------------|-----------------------|-------|
-| Codex hook templates | `adapters/codex/templates/hooks/` | `templates/hooks/` | Template-only until activation semantics are smoke-tested |
+| Codex hook templates | `adapters/codex/templates/hooks/codex-hooks.json.template` | `templates/hooks/codex-hooks.json.template` | Template-only guardrail; hard enforcement stays in pre-commit/CI until activation and tool coverage are smoke-tested |
+| Pre-commit template | `adapters/codex/templates/hooks/pre-commit-autoresearch-protected.sh` | `templates/hooks/pre-commit-autoresearch-protected.sh` | Hard local guardrail using the shared checker |
+| CI template | `adapters/codex/templates/hooks/github-actions-autoresearch-protected.yml` | `templates/hooks/github-actions-autoresearch-protected.yml` | Pull-request guardrail using the shared checker |
+| AGENTS reminder snippet | `adapters/codex/templates/hooks/agents-autoresearch-protection.md` | `templates/hooks/agents-autoresearch-protection.md` | Level 1 instruction layer for target projects |
 | Runtime Codex hook config | `adapters/codex/hooks/` | `hooks/` plus manifest `hooks` field | Only after local activation smoke test passes |
 | Autoresearch checker reference | `adapters/codex/scripts/check-autoresearch-protected.py` | `scripts/check-autoresearch-protected.py` | Shared by Codex hooks, pre-commit, and CI templates |
 | Protected-path template | `adapters/codex/templates/autoresearch-protected.txt` | `templates/autoresearch-protected.txt` | Project bootstrap asset copied to `.harness/autoresearch-protected.txt` |
