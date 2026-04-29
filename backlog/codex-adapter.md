@@ -81,7 +81,7 @@ Implemented v0 scope:
 
 Remaining follow-up work:
 
-- Add Codex hook templates under `adapters/codex/templates/hooks/`, runtime hook config under `adapters/codex/hooks/` only after smoke test, plus autoresearch checker and protected-path templates as v1 protection assets.
+- Add Codex hook templates under `adapters/codex/templates/hooks/` and runtime hook config under `adapters/codex/hooks/` only after smoke test; checker and protected-path reference assets now exist.
 - Add completed Codex examples after a real project dry run.
 - Expand `plugin.json` beyond `skills` only after runtime assets are executable and smoke-tested.
 - Keep marketplace metadata deferred until local plugin activation is proven.
@@ -152,14 +152,20 @@ Potential improvement:
 
 ### 12. Provide a Codex autoresearch protection checker reference implementation
 
-The `autoresearch` skill now defines the checker contract, but does not ship a reference implementation.
+Decision implemented: ship a reference checker as a Codex plugin asset, plus a protected-path template and unit tests for the matcher and hook outputs.
 
-Potential improvement:
+Implemented foundation:
 
-- Provide `scripts/check-autoresearch-protected.py` as a template or skill asset.
-- Support Codex `PreToolUse`, Codex `PermissionRequest`, pre-commit, and CI modes.
-- Parse protected paths from `.harness/autoresearch-protected.txt`.
-- Include tests for exact path/prefix matching and protected-path violations.
+- `adapters/codex/scripts/check-autoresearch-protected.py` supports Codex `PreToolUse`, Codex `PermissionRequest`, pre-commit, and CI modes.
+- `adapters/codex/templates/autoresearch-protected.txt` provides the project-local `.harness/autoresearch-protected.txt` starting point.
+- `adapters/codex/tests/test_check_autoresearch_protected.py` covers exact path matching, prefix matching, Codex deny JSON shapes, and pre-commit violation detection.
+- The plugin sync map generates checker and protected-path template assets into `plugins/ai-agent-meta-harness/`.
+
+Remaining follow-up work:
+
+- Add Codex hook template files that call the checker.
+- Add mechanical smoke assertions for the hook JSON shapes in setup docs or scripts.
+- Add a CI template that chooses the comparison base explicitly for GitHub Actions and non-GitHub CI.
 
 ### 13. Make Codex hook smoke tests mechanically assert output
 
@@ -197,7 +203,7 @@ Decision implemented: `plugins/ai-agent-meta-harness/` is the generated local pl
 
 Remaining follow-up work:
 
-- Add hook templates and protection checker templates to the generated path mapping when those canonical adapter assets exist.
+- Add hook templates to the generated path mapping when canonical template assets exist; checker and protected-path template mapping are already implemented.
 - Add examples to the generated path mapping when Codex examples are introduced.
 - Decide whether `.codex-plugin/plugin.json` should remain hand-authored canonical metadata or become generated from a smaller metadata source.
 - Document and smoke-test the exact local plugin activation command before calling the plugin path fully installed.

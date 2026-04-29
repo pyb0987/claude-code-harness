@@ -25,7 +25,8 @@ REQUIRED_SKILL_FILES = (
     "init-codex-harness/SKILL.md",
     "multi-review/SKILL.md",
 )
-REQUIRED_TEMPLATE_FILES = ("AGENTS.md.template",)
+REQUIRED_TEMPLATE_FILES = ("AGENTS.md.template", "autoresearch-protected.txt")
+REQUIRED_SCRIPT_FILES = ("check-autoresearch-protected.py",)
 
 
 @dataclass(frozen=True)
@@ -45,6 +46,7 @@ def validate_source_tree() -> list[str]:
     required = (
         ("skills", REQUIRED_SKILL_FILES),
         ("templates", REQUIRED_TEMPLATE_FILES),
+        ("scripts", REQUIRED_SCRIPT_FILES),
     )
     for directory, files in required:
         base = SOURCE_ROOT / directory
@@ -77,6 +79,10 @@ def build_mappings() -> list[Mapping]:
     templates_root = SOURCE_ROOT / "templates"
     for file_name in REQUIRED_TEMPLATE_FILES:
         mappings.append(Mapping(templates_root / file_name, PLUGIN_ROOT / "templates" / file_name))
+
+    scripts_root = SOURCE_ROOT / "scripts"
+    for file_name in REQUIRED_SCRIPT_FILES:
+        mappings.append(Mapping(scripts_root / file_name, PLUGIN_ROOT / "scripts" / file_name))
     return mappings
 
 

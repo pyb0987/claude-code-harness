@@ -9,10 +9,10 @@ only the Codex runtime adapter surfaces needed to apply that methodology.
 | Stage | Bundle contents | Status |
 |-------|-----------------|--------|
 | v0 scaffold | Skills, AGENTS template, README, plugin manifest, scope document | Implemented |
-| v1 protection | Codex hook templates, autoresearch checker template, protected-path template, install/smoke-test docs | Planned |
+| v1 protection | Autoresearch checker and protected-path template implemented; hook templates and install/smoke-test docs planned | Partial |
 | Later release | Examples, marketplace metadata, richer install validation, optional generated assets | Planned |
 
-## Current v0 Contents
+## Current Generated Contents
 
 The generated plugin at `plugins/ai-agent-meta-harness/` currently includes:
 
@@ -24,8 +24,10 @@ The generated plugin at `plugins/ai-agent-meta-harness/` currently includes:
 - `skills/init-codex-harness/SKILL.md`
 - `skills/multi-review/SKILL.md`
 - `templates/AGENTS.md.template`
+- `templates/autoresearch-protected.txt`
+- `scripts/check-autoresearch-protected.py`
 
-The v0 sync map copies only explicitly listed template files. The only required v0 template is `AGENTS.md.template`. Future templates must be added to this scope document and the sync map before they ship in the generated plugin.
+The sync map copies only explicitly listed template and script files. Future templates or scripts must be added to this scope document and the sync map before they ship in the generated plugin.
 
 `adapters/codex/` remains the editable canonical source. Generated plugin files
 must be updated with `python3 scripts/sync-codex-plugin.py --write` and checked
@@ -53,8 +55,8 @@ Do not include:
 |-------------|------------------|-----------------------|-------|
 | Codex hook templates | `adapters/codex/templates/hooks/` | `templates/hooks/` | Template-only until activation semantics are smoke-tested |
 | Runtime Codex hook config | `adapters/codex/hooks/` | `hooks/` plus manifest `hooks` field | Only after local activation smoke test passes |
-| Autoresearch checker template | `adapters/codex/scripts/` | `scripts/` | Shared by Codex hooks, pre-commit, and CI templates |
-| Protected-path template | `adapters/codex/templates/` | `templates/` | Project bootstrap asset |
+| Autoresearch checker reference | `adapters/codex/scripts/check-autoresearch-protected.py` | `scripts/check-autoresearch-protected.py` | Shared by Codex hooks, pre-commit, and CI templates |
+| Protected-path template | `adapters/codex/templates/autoresearch-protected.txt` | `templates/autoresearch-protected.txt` | Project bootstrap asset copied to `.harness/autoresearch-protected.txt` |
 | Completed Codex example | `adapters/codex/examples/` | `examples/` | Added after a real project dry run |
 
 ## Manifest Rules
@@ -71,6 +73,6 @@ Meta-Harness paper principles are acceptance criteria here, not duplicated
 content. For this bundle, that means:
 
 - Raw traces remain project files, not plugin state.
-- Immutable evaluator protection needs structural templates in v1.
+- Immutable evaluator protection uses a shared checker plus structural templates in v1.
 - Enforcement assets should be shared by hooks, pre-commit, and CI where possible.
 - Scope should grow additively: ship v0, add v1 protection assets, then add release metadata.

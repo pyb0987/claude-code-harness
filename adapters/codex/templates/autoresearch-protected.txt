@@ -1,0 +1,10 @@
+# Autoresearch protected paths
+# One exact project-relative path or prefix ending in / per line.
+# Exact paths protect only that file. Prefix entries protect everything below it.
+# Keep this file tracked with the project autoresearch setup.
+
+evaluate.py
+program.md
+best_score.txt
+# evaluator_deps/
+# data/evaluation/

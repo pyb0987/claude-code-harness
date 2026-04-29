@@ -52,10 +52,14 @@ The bundle scope is staged so packaging does not outrun tested behavior. Full de
 | Stage | Includes | Status |
 |-------|----------|--------|
 | v0 scaffold | Skills, AGENTS template, README, plugin manifest, scope document | Implemented |
-| v1 protection | Codex hook templates, autoresearch checker template, protected-path template, install smoke-test docs | Planned |
+| v1 protection | Autoresearch checker and protected-path template implemented; hook templates and install smoke-test docs planned | Partial |
 | Later release | Examples, marketplace metadata, richer install validation | Planned |
 
 The Meta-Harness paper informs the acceptance criteria for this scope, but its methodology remains in `core/`; the plugin should not copy core content into a Codex-specific fork.
+
+## Autoresearch Protection Assets
+
+The generated plugin now carries a reference checker at `scripts/check-autoresearch-protected.py` and a protected-path template at `templates/autoresearch-protected.txt`. These are project assets to copy during autoresearch setup; they are not advertised as active plugin runtime hooks until hook templates and local activation smoke tests exist.
 
 ## Local Development Install
 
