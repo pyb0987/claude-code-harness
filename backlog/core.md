@@ -93,15 +93,20 @@ Potential improvement:
 
 Release readiness should be verified with a stable checklist instead of ad hoc manual review.
 
-Potential improvement:
+Decision implemented:
 
-- Mirror sync check.
-- README URL and repository-name check.
-- Skill frontmatter validation.
-- Adapter install smoke tests.
-- Old Claude install command smoke test while compatibility mirrors exist.
-- Codex install smoke test for the chosen primary distribution path.
-- Release note entry for adapter/core behavior changes.
+- `MAINTENANCE.md` now defines the standard verification set, release checklist,
+  test policy, multi-review use, and near-term maintenance sequence.
+
+Remaining follow-up work:
+
+- Add skill frontmatter validation if skill metadata grows beyond current
+  smoke-test coverage.
+- Add adapter install smoke tests as the Claude and Codex install paths become
+  mechanically executable.
+- Add old Claude install command smoke test while compatibility mirrors exist.
+- Add Codex activation smoke test for the chosen primary distribution path.
+- Add release note policy when versioned releases begin.
 
 ### 10. Make repository drift checks staged-content-aware
 

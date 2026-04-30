@@ -2,6 +2,11 @@
 
 Repository-level backlog for non-blocking improvements discovered during harness reviews and adapter porting work.
 
+Operational maintenance rules, verification commands, release checks, and test
+policy live in `../MAINTENANCE.md`. This folder tracks future work; the
+maintenance plan describes how that work should be selected, reviewed, and
+verified.
+
 Use this folder by ownership, not by where an issue was discovered:
 
 | Area | File | Ownership |

@@ -14,6 +14,7 @@ The repository is split into a shared core plus thin runtime adapters. The metho
 | **Claude adapter** | Claude Code commands, skills, examples, hooks guidance | `adapters/claude/` |
 | **Codex adapter** | Codex skills and project instruction templates | `adapters/codex/` |
 | **Backlog** | Non-blocking core and adapter improvement items | `backlog/` |
+| **Maintenance plan** | Repository upkeep, tests, release checks, review policy | `MAINTENANCE.md` |
 
 ## Core Principles
 
@@ -148,6 +149,9 @@ Compatibility mirror mapping:
 | `adapters/codex/templates/AGENTS.md.template` | `adapters/codex/skills/init-codex-harness/assets/AGENTS.md.template` |
 
 Run `python3 scripts/check-compat-mirrors.py`, `python3 scripts/check-claude-adapter-paths.py`, `python3 scripts/sync-codex-plugin.py --check`, `python3 adapters/codex/scripts/check-codex-hook-schema-drift.py`, and `python3 adapters/codex/scripts/smoke-local-plugin.py` before committing changes that touch mirrored paths or adapters.
+
+See `MAINTENANCE.md` for the standard verification set, release checklist, and
+rules for when this repository should add tests versus rely on multi-review.
 
 ### Pre-commit Hook
 
