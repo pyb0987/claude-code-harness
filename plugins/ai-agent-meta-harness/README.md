@@ -63,14 +63,15 @@ The generated plugin now carries a reference checker at `scripts/check-autoresea
 
 ## Local Development Install
 
-Generate and verify the repo-local plugin bundle before local Codex dogfooding:
+Generate and verify the repo-local plugin bundle before artifact-level dogfooding:
 
 ```bash
 python3 scripts/sync-codex-plugin.py --write
 python3 scripts/sync-codex-plugin.py --check
+python3 adapters/codex/scripts/smoke-local-plugin.py
 ```
 
-The generated plugin lives at `plugins/ai-agent-meta-harness/`. The exact Codex local-plugin activation command is intentionally not documented here until it has a repo smoke test; track that in `backlog/codex-adapter.md`.
+The generated plugin lives at `plugins/ai-agent-meta-harness/`. The smoke test validates the bundle artifact: manifest, expected skills, checker/hook/template assets, and degraded fallback warnings. The exact Codex local-plugin activation command is intentionally not documented here until Codex activation can be exercised mechanically; track that in `backlog/codex-adapter.md`.
 
 Until the activation workflow is validated, use the degraded direct-copy fallback for executable local skill iteration:
 

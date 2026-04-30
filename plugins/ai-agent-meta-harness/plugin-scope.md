@@ -31,6 +31,7 @@ The generated plugin at `plugins/ai-agent-meta-harness/` currently includes:
 - `templates/hooks/agents-autoresearch-protection.md`
 - `scripts/check-autoresearch-protected.py`
 - `scripts/smoke-autoresearch-hooks.py`
+- `scripts/smoke-local-plugin.py`
 
 The sync map copies only explicitly listed template and script files. Future templates or scripts must be added to this scope document and the sync map before they ship in the generated plugin.
 
@@ -65,6 +66,7 @@ Do not include:
 | Runtime Codex hook config | `adapters/codex/hooks/` | `hooks/` plus manifest `hooks` field | Only after local activation smoke test passes |
 | Autoresearch checker reference | `adapters/codex/scripts/check-autoresearch-protected.py` | `scripts/check-autoresearch-protected.py` | Shared by Codex hooks, pre-commit, and CI templates |
 | Hook smoke assertions | `adapters/codex/scripts/smoke-autoresearch-hooks.py` | `scripts/smoke-autoresearch-hooks.py` | Mechanically asserts Codex hook deny JSON shapes |
+| Local plugin artifact smoke test | `adapters/codex/scripts/smoke-local-plugin.py` | `scripts/smoke-local-plugin.py` | Verifies manifest, expected skills, protection assets, and degraded fallback warning |
 | Protected-path template | `adapters/codex/templates/autoresearch-protected.txt` | `templates/autoresearch-protected.txt` | Project bootstrap asset copied to `.harness/autoresearch-protected.txt` |
 | Completed Codex example | `adapters/codex/examples/` | `examples/` | Added after a real project dry run |
 

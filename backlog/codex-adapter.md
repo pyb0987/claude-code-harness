@@ -233,17 +233,35 @@ Potential improvement:
 - Document when `.agents/plugins/marketplace.json` should be generated or updated.
 - Avoid publishing-oriented metadata churn while the local plugin layout is still stabilizing.
 
-### 18. Add local plugin install smoke test
+### 18. Add local plugin artifact smoke test
 
-The local plugin path cannot be considered ready until installation can be checked mechanically.
+The local plugin bundle cannot be considered ready until the artifact can be checked mechanically. This item intentionally validates the generated plugin artifact, not Codex runtime activation.
+
+Decision implemented: ship a local plugin artifact smoke test that validates the generated bundle before Codex dogfooding.
+
+Implemented foundation:
+
+- `adapters/codex/scripts/smoke-local-plugin.py` validates `.codex-plugin/plugin.json` exists, parses, and points skills at `./skills/`.
+- The smoke test verifies the expected Codex skills exist and declare matching skill names.
+- The smoke test verifies checker, hook smoke, hook templates, AGENTS template, and protected-path template assets are present and non-empty.
+- The smoke test fails if the generated plugin README stops documenting the degraded direct-copy fallback safety warning.
+- The smoke test rejects a manifest that advertises runtime `hooks` before Codex activation coverage is smoke-tested.
+- Unit tests cover the passing bundle and missing-manifest, invalid-manifest, wrong-skills-path, runtime-hooks, missing-skill, missing-asset, and missing-warning failures.
+- The tracked pre-commit hook runs the smoke test after the generated plugin sync check.
+
+Remaining follow-up work:
+
+- Add the local plugin artifact smoke test to the formal release checklist when that checklist is introduced.
+
+### 19. Add true Codex local plugin activation smoke test
+
+The artifact smoke test proves the generated plugin bundle is internally coherent, but it does not prove Codex has loaded the plugin in a running session.
 
 Potential improvement:
 
-- Add a smoke test that validates `.codex-plugin/plugin.json` exists and parses.
-- Verify expected skills are visible from the plugin bundle.
-- Verify hook/checker assets are present in the bundle.
-- Verify direct skill-copy fallback emits or documents a degraded-safety warning.
-- Run the smoke test as part of the repository release checklist.
+- Identify the exact local Codex plugin activation command or manifest registration path for the supported Codex surface.
+- Add an automated smoke test that installs or activates `plugins/ai-agent-meta-harness/` in an isolated Codex home and verifies the expected skills are discoverable through Codex.
+- Keep runtime hook manifest fields gated until activation and tool-event coverage are both smoke-tested.
 
 ## Current Status
 

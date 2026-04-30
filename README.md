@@ -117,9 +117,10 @@ Suggested local plugin workflow while developing the adapter:
 ```bash
 python3 scripts/sync-codex-plugin.py --write
 python3 scripts/sync-codex-plugin.py --check
+python3 adapters/codex/scripts/smoke-local-plugin.py
 ```
 
-The generated plugin bundle lives at `plugins/ai-agent-meta-harness/`. The exact Codex local-plugin activation command is pending a repo smoke test, so direct skill copy remains the executable degraded fallback for fast skill text iteration:
+The generated plugin bundle lives at `plugins/ai-agent-meta-harness/`. The local smoke test validates the plugin artifact, not Codex runtime activation. The exact Codex local-plugin activation command is pending an activation smoke test, so direct skill copy remains the executable degraded fallback for fast skill text iteration:
 
 ```bash
 mkdir -p ~/.codex/skills
@@ -144,7 +145,7 @@ Compatibility mirror mapping:
 | `skills/*` | `adapters/claude/skills/*` |
 | `adapters/codex/templates/AGENTS.md.template` | `adapters/codex/skills/init-codex-harness/assets/AGENTS.md.template` |
 
-Run `python3 scripts/check-compat-mirrors.py` and `python3 scripts/sync-codex-plugin.py --check` before committing changes that touch mirrored paths or the Codex adapter.
+Run `python3 scripts/check-compat-mirrors.py`, `python3 scripts/sync-codex-plugin.py --check`, and `python3 adapters/codex/scripts/smoke-local-plugin.py` before committing changes that touch mirrored paths or the Codex adapter.
 
 ### Pre-commit Hook
 
@@ -154,7 +155,7 @@ Enable the tracked git hook in local clones:
 git config core.hooksPath .githooks
 ```
 
-The pre-commit hook runs `python3 scripts/check-compat-mirrors.py` and `python3 scripts/sync-codex-plugin.py --check` so temporary compatibility mirrors and the generated Codex plugin cannot silently drift from their canonical files.
+The pre-commit hook runs `python3 scripts/check-compat-mirrors.py`, `python3 scripts/sync-codex-plugin.py --check`, and `python3 adapters/codex/scripts/smoke-local-plugin.py` so temporary compatibility mirrors and the generated Codex plugin cannot silently drift from their canonical files or lose required plugin-bundle surfaces.
 
 ## How It Works
 

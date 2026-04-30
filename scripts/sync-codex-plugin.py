@@ -33,7 +33,11 @@ REQUIRED_TEMPLATE_FILES = (
     "hooks/github-actions-autoresearch-protected.yml",
     "hooks/agents-autoresearch-protection.md",
 )
-REQUIRED_SCRIPT_FILES = ("check-autoresearch-protected.py", "smoke-autoresearch-hooks.py")
+REQUIRED_SCRIPT_FILES = (
+    "check-autoresearch-protected.py",
+    "smoke-autoresearch-hooks.py",
+    "smoke-local-plugin.py",
+)
 
 
 @dataclass(frozen=True)
