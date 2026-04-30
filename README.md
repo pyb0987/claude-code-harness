@@ -35,6 +35,7 @@ core/
 backlog/
 ├── README.md               # Backlog ownership guide
 ├── core.md                 # Agent-agnostic follow-ups
+├── claude-adapter.md       # Claude Code-specific follow-ups
 └── codex-adapter.md        # Codex-specific follow-ups
 adapters/
 ├── claude/
@@ -92,9 +93,9 @@ your-project/
 │   │   ├── experiments/          # Autoresearch episodes
 │   │   └── search-set.md         # Verification test cases
 │   ├── hooks/                    # Project-specific hook scripts
+│   ├── settings.local.json        # Hook configuration
 │   └── skills/                   # Domain-specific skills (if needed)
 ├── CLAUDE.md                     # Project instructions
-└── settings.local.json           # Hook configuration
 ```
 
 ## Codex Adapter
@@ -146,7 +147,7 @@ Compatibility mirror mapping:
 | `skills/*` | `adapters/claude/skills/*` |
 | `adapters/codex/templates/AGENTS.md.template` | `adapters/codex/skills/init-codex-harness/assets/AGENTS.md.template` |
 
-Run `python3 scripts/check-compat-mirrors.py`, `python3 scripts/sync-codex-plugin.py --check`, `python3 adapters/codex/scripts/check-codex-hook-schema-drift.py`, and `python3 adapters/codex/scripts/smoke-local-plugin.py` before committing changes that touch mirrored paths or the Codex adapter.
+Run `python3 scripts/check-compat-mirrors.py`, `python3 scripts/check-claude-adapter-paths.py`, `python3 scripts/sync-codex-plugin.py --check`, `python3 adapters/codex/scripts/check-codex-hook-schema-drift.py`, and `python3 adapters/codex/scripts/smoke-local-plugin.py` before committing changes that touch mirrored paths or adapters.
 
 ### Pre-commit Hook
 
@@ -156,7 +157,7 @@ Enable the tracked git hook in local clones:
 git config core.hooksPath .githooks
 ```
 
-The pre-commit hook runs `python3 scripts/check-compat-mirrors.py`, `python3 scripts/sync-codex-plugin.py --check`, `python3 adapters/codex/scripts/check-codex-hook-schema-drift.py`, and `python3 adapters/codex/scripts/smoke-local-plugin.py` so temporary compatibility mirrors and the generated Codex plugin cannot silently drift from their canonical files, lose required plugin-bundle surfaces, or change hook-sensitive surfaces without schema re-verification.
+The pre-commit hook runs `python3 scripts/check-compat-mirrors.py`, `python3 scripts/check-claude-adapter-paths.py`, `python3 scripts/sync-codex-plugin.py --check`, `python3 adapters/codex/scripts/check-codex-hook-schema-drift.py`, and `python3 adapters/codex/scripts/smoke-local-plugin.py` so temporary compatibility mirrors, Claude path contracts, and the generated Codex plugin cannot silently drift.
 
 ## How It Works
 

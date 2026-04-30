@@ -31,7 +31,7 @@ npm run typecheck    # tsc --noEmit
 
 ## Harness
 
-### Hooks (settings.local.json)
+### Hooks (`.claude/settings.local.json`)
 - PostToolUse Edit|Write on `*.ts` → `tsc --noEmit` (blocking)
 - PostToolUse Edit|Write on `*.test.ts` → `vitest run --reporter=verbose` (blocking)
 
@@ -42,4 +42,4 @@ npm run typecheck    # tsc --noEmit
 
 ### Change Strategy
 Additive first → Subtractive → Structural. One change at a time.
-Record all changes in traces/evolution/ with verdict.
+Record all changes in `.claude/traces/evolution/` with verdict.

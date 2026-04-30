@@ -34,7 +34,7 @@ mkdir -p .claude/traces/{evolution,failures,experiments}
 ```
 
 ```markdown
-# traces/search-set.md
+# .claude/traces/search-set.md
 ---
 description: "Collection of failure cases for verifying harness changes. After changes, confirm these cases don't recur."
 last_updated: "YYYY-MM-DD"
@@ -51,7 +51,7 @@ Update last_updated when adding/removing items.
 ### SS-001: {first failure scenario identified from project analysis}
 - **Symptom**: {risk found in Step 2 analysis — e.g., deploying without tests, ignoring type errors}
 - **verify**: `{auto-executable verification command}`
-- **ref**: (linked to traces/failures/ when recorded later)
+- **ref**: (linked to .claude/traces/failures/ when recorded later)
 ## Archived
 (Resolved cases with low regression risk)
 ```
@@ -75,9 +75,9 @@ Write or enhance project CLAUDE.md:
 4. Check for duplicates/conflicts with global rules (~/.claude/rules/common/)
 5. **Harness section required**:
    - Hook list + each hook's enforcement level (blocking/warning)
-   - traces/ structure
+   - .claude/traces/ structure
    - **Change strategy**: Additive first -> Subtractive -> Structural (one at a time, confounding variable isolation)
-   - **Failure escalation loop**: a `resolved: true` entry in `traces/failures/*.md` must satisfy at least one of — (a) `escalated_to` is not empty (absorbed into CLAUDE.md / hook / tool), (b) an active search-set guard for the same pattern exists. If neither holds, do not mark it resolved
+   - **Failure escalation loop**: a `resolved: true` entry in `.claude/traces/failures/*.md` must satisfy at least one of — (a) `escalated_to` is not empty (absorbed into CLAUDE.md / hook / tool), (b) an active search-set guard for the same pattern exists. If neither holds, do not mark it resolved
    - **Sub-agent triggers**: reference `~/.claude/rules/common/harness-methodology.md` "Sub-Agent Invocation" — two repo-specific triggers (multi-review for qualitative judgment, Fixed Evaluator for evaluator independence). Generic sub-agent uses (parallel Explore, context firewall) are Claude Code patterns, not harness policy. Prefer over-invoking to under-invoking
    - Protected files (if applicable)
 
@@ -108,10 +108,10 @@ Hook writing principles:
 - On success: 1-line summary only (save context)
 - On failure: tail last N lines only (no full output)
 - Blocking hooks must `exit 1` on failure (PreToolUse: blocks tool execution, PostToolUse: emphasizes warning)
-- Write in settings.local.json (project scope, not global)
-- If existing settings.local.json: Read first, then merge (no overwriting)
+- Write in `.claude/settings.local.json` (project scope, not global)
+- If existing `.claude/settings.local.json`: Read first, then merge (no overwriting)
 
-hooks JSON schema (settings.local.json):
+hooks JSON schema (`.claude/settings.local.json`):
 ```json
 {
   "hooks": {
@@ -185,9 +185,9 @@ Rationale: multi-review is the tactical mechanism for the "qualitative multi-per
 
 After all components (CLAUDE.md, hooks, skills) are confirmed, write the initial evolution log:
 
-`traces/evolution/001-initial-harness.md`:
+`.claude/traces/evolution/001-initial-harness.md`:
 - iteration 1, date, type: additive, verdict: neutral
-- Record actually added hooks/rules/tests and their rationale
+- Record actually added hooks, rules, tests, and their rationale
 - Format: see reference.md Section 1
 
 ### Step 8: Completion Verification
@@ -195,17 +195,17 @@ After all components (CLAUDE.md, hooks, skills) are confirmed, write the initial
 All items below must pass for init-harness to be complete:
 
 - [ ] `.claude/traces/{evolution,failures,experiments}/` directories exist
-- [ ] `traces/search-set.md` template created
-- [ ] `traces/evolution/001-initial-harness.md` written (Step 7)
-- [ ] CLAUDE.md includes Harness section (hooks, traces/, change strategy, sub-agent triggers)
+- [ ] `.claude/traces/search-set.md` template created
+- [ ] `.claude/traces/evolution/001-initial-harness.md` written (Step 7)
+- [ ] CLAUDE.md includes Harness section (.claude/hooks/, .claude/traces/, change strategy, sub-agent triggers)
 - [ ] Multi-review skill availability verified (`~/.claude/skills/multi-review/SKILL.md` exists, or user instructed to install from `{repo}/adapters/claude/skills/multi-review/`)
 - [ ] CLAUDE.md within 100 lines (split to docs/ complete if exceeded)
-- [ ] Hooks registered in `settings.local.json`
+- [ ] Hooks registered in `.claude/settings.local.json`
 - [ ] `.claude/agents/` directory was NOT created
 - [ ] (if skill created in Step 6) `.claude/skills/{name}/SKILL.md` exists + Anti-patterns section included + domain rules migrated from CLAUDE.md
 - [ ] No duplicates between global rules (~/.claude/rules/common/) and CLAUDE.md
-- [ ] Every `resolved: true` entry in `traces/failures/*.md` has a non-empty `escalated_to` or is linked to an active search-set guard (exception: `classification: false_alarm` does not require escalation)
-- [ ] `traces/search-set.md` has at least 1 Active entry (if 0, restore an Archived item or register an unresolved failure)
+- [ ] Every `resolved: true` entry in `.claude/traces/failures/*.md` has a non-empty `escalated_to` or is linked to an active search-set guard (exception: `classification: false_alarm` does not require escalation)
+- [ ] `.claude/traces/search-set.md` has at least 1 Active entry (if 0, restore an Archived item or register an unresolved failure)
 
 ## Important
 
@@ -214,11 +214,11 @@ All items below must pass for init-harness to be complete:
 - **Do NOT create agent teams/orchestrators/agent definition files (.claude/agents/)** — Meta-Harness focuses on single-agent environment optimization. Subagents (evaluator, explore, multi-review critics, etc.) are allowed for context isolation and tactical decision support — this is single-agent tool usage, not multi-persona collaboration. See `~/.claude/rules/common/harness-methodology.md` "Sub-Agent Invocation" for the three trigger categories
 - Achieve full coverage via hooks + explicit done conditions. Avoid over-installing hooks
 
-## Hook Configuration Example (settings.local.json)
+## Hook Configuration Example (`.claude/settings.local.json`)
 
 This example shows generic init-harness hooks only. **Evaluator protection hooks (`protect-files.sh`, `protect-files-bash.sh`) are NOT installed by init-harness** — they are installed by `/autoresearch` Setup Mode Step 6 when (and only when) the project adopts the Fixed Evaluator pattern. See the forward-reference Note in Step 3 above.
 
-The hook script referenced below (e.g., `tsc-check.sh`) is illustrative — substitute the actual command you select from the Hook Recipe in Step 5 (`tsc --noEmit`, `mypy`, `pytest`, etc.). Generate the script next to `settings.local.json` under `.claude/hooks/`.
+The hook script referenced below (e.g., `tsc-check.sh`) is illustrative — substitute the actual command you select from the Hook Recipe in Step 5 (`tsc --noEmit`, `mypy`, `pytest`, etc.). Generate the script under `.claude/hooks/` and register it in `.claude/settings.local.json`.
 
 ```json
 {

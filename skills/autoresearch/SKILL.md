@@ -89,7 +89,7 @@ Requirements:
 - Timeout guard (prevent infinite loops)
 - Binary verdict: ADOPT / REJECT_GUARD / REJECT_THRESHOLD / ERROR
 - Immutable: state "do not modify" in program.md
-- **SSOT for baseline**: evaluate.py writes `best_score.txt` on ADOPT. This file is the **single source of truth** for the current baseline. Do NOT duplicate the baseline value in program.md, handoff.md, or anywhere else — duplication creates cadence-conflict drift (see traces/failures/ for the diagnosed failure mode).
+- **SSOT for baseline**: evaluate.py writes `best_score.txt` on ADOPT. This file is the **single source of truth** for the current baseline. Do NOT duplicate the baseline value in program.md, handoff.md, or anywhere else — duplication creates cadence-conflict drift (see `.claude/traces/failures/` for the diagnosed failure mode).
 
 #### Step 3: Write program.md
 ```markdown
@@ -154,7 +154,7 @@ Create empty file. First experiment is n=1.
 
 **Raw output preservation**: evaluate.py's JSON stdout is critical diagnostic material. Preserve originals, not summaries:
 - `experiments.jsonl`: record each experiment's full JSON output as 1 line (machine parseable)
-- `traces/experiments/NNN-*.md`: include representative experiments' raw output in episode traces
+- `.claude/traces/experiments/NNN-*.md`: include representative experiments' raw output in episode traces
 - Preserve verdict, score, gates, metrics in full — no selective field omission
 
 #### Step 6: Install Evaluator Protection Hooks
@@ -273,7 +273,7 @@ Append (or merge into existing) an Autoresearch section to the project CLAUDE.md
 - **Mutable/immutable file boundary**: evaluator + dependencies = IMMUTABLE, genome = MUTABLE
 - **Trace recording timing**: record immediately on ADOPT, axis exhaustion, every 10 experiments, termination
 - **Trace YAML frontmatter required fields**: session, date, experiment_range, adopts, rejects, metric_start, metric_end
-- **Reject code preservation**: before reverting on REJECT, capture `git diff HEAD~1` into the failures/ trace when recording triggers apply (see methodology.md)
+- **Reject code preservation**: before reverting on REJECT, capture `git diff HEAD~1` into the `.claude/traces/failures/` trace when recording triggers apply (see methodology.md)
 
 **Idempotency**: if CLAUDE.md already contains an "Autoresearch" heading, merge new bullets only. Do not duplicate. If the 100-line CLAUDE.md cap is exceeded, split the autoresearch section to `docs/autoresearch.md` and leave a one-line reference in CLAUDE.md.
 
@@ -319,8 +319,8 @@ The loop the agent executes when program.md already exists.
 
 #### Termination Conditions
 - `n >= MAX_EXPERIMENTS` (default: 100)
-- `consecutive_rejects >= 20` → record as blocked in handoff.md + **escalate**: record in traces/failures/ with diagnosis of the structural cause, then escalate to harness-engineer. No simple retries — structural cause diagnosis required
-- Context window exhausted → record as in_progress in handoff.md (not recorded in failures/ — exhaustion is a budget/session limit, not a harness diagnosis target)
+- `consecutive_rejects >= 20` → record as blocked in handoff.md + **escalate**: record in `.claude/traces/failures/` with diagnosis of the structural cause, then escalate to harness-engineer. No simple retries — structural cause diagnosis required
+- Context window exhausted → record as in_progress in handoff.md (not recorded in `.claude/traces/failures/` — exhaustion is a budget/session limit, not a harness diagnosis target)
 - ERROR verdict → revert + try different approach (not stop)
 
 #### Episode Trace — Immediate Recording (do NOT wait for session end)
@@ -337,9 +337,9 @@ Episode traces are written **immediately at milestones**. Do not batch-write at 
 Episode file: `.claude/traces/experiments/NNN-{name}.md`
 - experiments.jsonl is a machine-readable 1-line log; episodes provide diagnostic context ("why?")
 - Format: see reference.md "Experiment Episode Format" section
-- Numbering: next sequence number within `traces/experiments/`
+- Numbering: next sequence number within `.claude/traces/experiments/`
 - Multiple episodes possible per session (e.g., one per ADOPT)
-- **harness-engineer integration**: experiment episodes are a different layer from failures/ — harness-engineer reads Exhausted Axes / Lesson sections directly
+- **harness-engineer integration**: experiment episodes are a different layer from `.claude/traces/failures/` — harness-engineer reads Exhausted Axes / Lesson sections directly
 
 #### Session Continuity
 
@@ -361,7 +361,7 @@ Next session reads handoff.md + latest episode traces to maintain continuity.
 ## Evaluator Problem Detection → Harness Feedback Loop
 
 When structural problems with evaluate.py itself are suspected (gradient dead zone, guard malfunction, metric distortion, etc.):
-1. Record in `traces/failures/NNN-{name}.md` (include symptoms + supporting data)
+1. Record in `.claude/traces/failures/NNN-{name}.md` (include symptoms + supporting data)
 2. Escalate to harness-engineer for diagnosis
 3. evaluate.py is immutable, so **the agent does not modify it directly** — redesign after user confirmation
 

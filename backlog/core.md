@@ -103,6 +103,22 @@ Potential improvement:
 - Codex install smoke test for the chosen primary distribution path.
 - Release note entry for adapter/core behavior changes.
 
+### 10. Make repository drift checks staged-content-aware
+
+Pre-commit checks should validate the content that will actually be committed,
+not only the current working tree. The Claude adapter path checker already reads
+indexed files, but other repository drift checks should converge on the same
+semantics.
+
+Potential improvement:
+
+- Update `scripts/check-compat-mirrors.py` to compare staged canonical files and
+  staged mirror files when invoked from pre-commit.
+- Decide whether generated artifact checks should use staged content, working
+  tree content, or an explicit mode flag.
+- Add tests for staged-added, staged-modified, and staged-deleted paths that are
+  relevant to mirror and generated-artifact drift.
+
 ## Current Status
 
 - Source review: strict multi-review of `adapters/codex/skills/harness-engineer/SKILL.md`.

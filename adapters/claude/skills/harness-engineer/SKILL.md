@@ -25,7 +25,7 @@ New harness creation is handled by /init-harness. This skill handles evolution a
 | Rule reinforcement after CI/linter failure | General code writing |
 | Harness rule review/cleanup requested | Project requirements analysis |
 | CLAUDE.md diverges from actual code | External documentation research |
-| Evaluating need for hooks/MCP additions | Architecture root cause analysis |
+| Evaluating need for hooks or MCP additions | Architecture root cause analysis |
 
 </when-to-use>
 
@@ -39,14 +39,14 @@ Propose harness changes while freely diagnosing within the following constraints
 - **Always check** `.claude/traces/` raw traces first (create directory if missing)
 - Do not rely on summaries/memory — read raw logs, code, and scores directly
 - **Required procedure (Non-Markovian)**: Before starting diagnosis, always run `ls .claude/traces/failures/` to check for similar past failures. If found, Read the file and diagnose why the prior Prevention did not work first. Do not skip this step
-- If a similar failure exists in traces/failures/, diagnose why the prior Prevention failed before anything else
-- **Autoresearch projects**: Read Exhausted Axes / Lesson sections from `traces/experiments/` episodes directly (experiments/ has no classification field — use Read-based reference instead of grep)
+- If a similar failure exists in `.claude/traces/failures/`, diagnose why the prior Prevention failed before anything else
+- **Autoresearch projects**: Read Exhausted Axes / Lesson sections from `.claude/traces/experiments/` episodes directly (experiments/ has no classification field — use Read-based reference instead of grep)
 
 ### Change Strategy
 - **Additive → Subtractive → Structural** order (confounding variable isolation)
 - **One change at a time** — do not bundle multiple changes
-- Prefer adding new hooks/rules over modifying existing working ones
-- If prior traces/evolution/ records regression for the same change type, avoid that type
+- Prefer adding new hooks or rules over modifying existing working ones
+- If prior `.claude/traces/evolution/` records regression for the same change type, avoid that type
 
 ### Evaluation Set
 - After changes, verify effectiveness using past failure cases in `.claude/traces/search-set.md`
@@ -55,8 +55,8 @@ Propose harness changes while freely diagnosing within the following constraints
 - **Active 0 policy**: if no Active cases remain, search for unresolved failures via `grep -l 'resolved: false' .claude/traces/failures/` and propose them as search-set candidates. If no unresolved failures either, re-run verify on recent Archived cases to check for regression
 
 ### Recording (Required)
-- All changes → `traces/evolution/NNN-{name}.md` (with YAML frontmatter)
-- All failure diagnoses → `traces/failures/NNN-{name}.md` (with YAML frontmatter)
+- All changes → `.claude/traces/evolution/NNN-{name}.md` (with YAML frontmatter)
+- All failure diagnoses → `.claude/traces/failures/NNN-{name}.md` (with YAML frontmatter)
 - Formats: see reference.md
 
 ### Prohibited
@@ -72,7 +72,7 @@ Report diagnosis results in this structure:
 ```
 ### Diagnosis
 - Cause: {specific cause, file:line references}
-- Prior similar cases: {traces/ reference or "none"}
+- Prior similar cases: {.claude/traces/... reference or "none"}
 - Transition judgment: if prior Prevention exists → (a) Prevention itself insufficient: propose strengthening, (b) Prevention adequate but different cause: restart diagnosis with new cause, (c) Prevention working but recurred: consider tool/hook escalation
 
 ### Proposal
@@ -91,6 +91,5 @@ Report diagnosis results in this structure:
 Review is possible even without active failures:
 - When drift is found via periodic harness review
 - On model version change (scaffolding removal verification)
-- When 5+ traces/evolution/ have accumulated for pattern analysis
-- **30+ days with no change**: if the latest traces/evolution/ date exceeds 30 days, recommend a harness review. This prevents silent degradation
-
+- When 5+ `.claude/traces/evolution/` entries have accumulated for pattern analysis
+- **30+ days with no change**: if the latest `.claude/traces/evolution/` date exceeds 30 days, recommend a harness review. This prevents silent degradation
