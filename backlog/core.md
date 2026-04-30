@@ -110,14 +110,25 @@ not only the current working tree. The Claude adapter path checker already reads
 indexed files, but other repository drift checks should converge on the same
 semantics.
 
-Potential improvement:
+Decision implemented for compatibility mirrors:
 
-- Update `scripts/check-compat-mirrors.py` to compare staged canonical files and
-  staged mirror files when invoked from pre-commit.
-- Decide whether generated artifact checks should use staged content, working
+- `scripts/check-compat-mirrors.py` now checks the fixed required mirror path
+  list against the Git index and reads canonical/mirror contents with
+  `git show :path`.
+- Unstaged working-tree drift does not affect pre-commit results.
+- Staged mirror drift and staged deletion of required canonical/mirror files
+  fail the check.
+- Temp-git integration tests cover unstaged drift, staged modified mirrors, and
+  staged deleted mirrors.
+
+Remaining follow-up work:
+
+- Decide whether generated artifact checks should use index content, working
   tree content, or an explicit mode flag.
 - Add tests for staged-added, staged-modified, and staged-deleted paths that are
-  relevant to mirror and generated-artifact drift.
+  relevant to generated-artifact drift.
+- Add temp-git staged-added coverage if the compatibility mirror contract starts
+  accepting newly introduced mirror pairs during the transition period.
 
 ## Current Status
 

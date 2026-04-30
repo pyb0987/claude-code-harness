@@ -5,10 +5,16 @@ The repository keeps old Claude-facing paths working for one transition period.
 Those mirrors are allowed to add a short HTML comment banner and, for docs/*,
 installed-Claude wording in the opening paragraph. Everything else should stay
 in sync with its canonical source.
+
+This check validates the Git index, not the working tree, so pre-commit reports
+what will actually be committed.
 """
+
+from __future__ import annotations
 
 from pathlib import Path
 import difflib
+from collections.abc import Callable
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -58,21 +64,54 @@ def normalize_pair(canonical_path: str, mirror_path: str, canonical: str, mirror
     return canonical, mirror
 
 
-def main() -> int:
-    failed = False
-    for canonical_path, mirror_path in MIRRORS:
-        canonical_file = ROOT / canonical_path
-        mirror_file = ROOT / mirror_path
-        if not canonical_file.exists() or not mirror_file.exists():
-            print(f"MISSING: {canonical_path} or {mirror_path}", file=sys.stderr)
-            failed = True
+def indexed_files() -> set[str]:
+    paths = sorted({path for pair in MIRRORS for path in pair})
+    result = subprocess_run(["git", "ls-files", "--", *paths])
+    return {line.strip() for line in result.splitlines() if line.strip()}
+
+
+def read_index_text(path: str) -> str:
+    return subprocess_run(["git", "show", f":{path}"])
+
+
+def subprocess_run(args: list[str]) -> str:
+    import subprocess
+
+    result = subprocess.run(
+        args,
+        cwd=ROOT,
+        encoding="utf-8",
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr.strip() or f"{' '.join(args)} failed")
+    return result.stdout
+
+
+def validate_mirrors(
+    *,
+    mirrors: list[tuple[str, str]] = MIRRORS,
+    indexed: set[str] | None = None,
+    read_text: Callable[[str], str] = read_index_text,
+) -> list[str]:
+    if indexed is None:
+        indexed = indexed_files()
+    errors: list[str] = []
+    for canonical_path, mirror_path in mirrors:
+        if canonical_path not in indexed or mirror_path not in indexed:
+            errors.append(f"MISSING: {canonical_path} or {mirror_path}")
             continue
-        canonical = canonical_file.read_text(encoding="utf-8")
-        mirror = mirror_file.read_text(encoding="utf-8")
+        try:
+            canonical = read_text(canonical_path)
+            mirror = read_text(mirror_path)
+        except RuntimeError as exc:
+            errors.append(f"UNREADABLE: {canonical_path} or {mirror_path}: {exc}")
+            continue
         canonical_norm, mirror_norm = normalize_pair(canonical_path, mirror_path, canonical, mirror)
         if canonical_norm != mirror_norm:
-            failed = True
-            print(f"OUT OF SYNC: {mirror_path} (canonical: {canonical_path})", file=sys.stderr)
+            errors.append(f"OUT OF SYNC: {mirror_path} (canonical: {canonical_path})")
             diff = difflib.unified_diff(
                 canonical_norm.splitlines(),
                 mirror_norm.splitlines(),
@@ -81,8 +120,19 @@ def main() -> int:
                 lineterm="",
             )
             for line in list(diff)[:80]:
-                print(line, file=sys.stderr)
-    if failed:
+                errors.append(line)
+    return errors
+
+
+def main() -> int:
+    try:
+        errors = validate_mirrors()
+    except RuntimeError as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    if errors:
+        for error in errors:
+            print(error, file=sys.stderr)
         return 1
     print("Compatibility mirrors are in sync.")
     return 0
