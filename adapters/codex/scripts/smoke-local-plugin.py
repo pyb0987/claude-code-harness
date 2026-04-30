@@ -26,6 +26,7 @@ EXPECTED_SKILLS = (
 
 EXPECTED_ASSETS = (
     "README.md",
+    "hook-schema.md",
     "plugin-scope.md",
     "templates/AGENTS.md.template",
     "templates/autoresearch-protected.txt",
@@ -34,6 +35,7 @@ EXPECTED_ASSETS = (
     "templates/hooks/github-actions-autoresearch-protected.yml",
     "templates/hooks/pre-commit-autoresearch-protected.sh",
     "scripts/check-autoresearch-protected.py",
+    "scripts/check-codex-hook-schema-drift.py",
     "scripts/smoke-autoresearch-hooks.py",
     "scripts/smoke-local-plugin.py",
 )

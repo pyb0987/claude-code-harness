@@ -194,11 +194,20 @@ Remaining follow-up work:
 
 Codex hook output shapes may change over time. The adapter now depends on current `PreToolUse` and `PermissionRequest` semantics.
 
-Potential improvement:
+Decision implemented: record the currently verified Codex hook schema and enforce re-verification when hook-sensitive adapter surfaces change.
 
-- Add a note to check official Codex hooks docs before changing hook templates.
-- Record the verified hook schema date or Codex version in release notes when templates change.
-- Add a backlog review item whenever Codex hook interception semantics change.
+Implemented foundation:
+
+- `adapters/codex/hook-schema.md` records the verified date, Codex CLI version, official hooks/config source URLs, and expected `PreToolUse`/`PermissionRequest` blocking output shapes.
+- `adapters/codex/scripts/check-codex-hook-schema-drift.py` validates the schema reference markers.
+- The drift checker fails in pre-commit when hook-sensitive staged changes omit a staged `adapters/codex/hook-schema.md` update or re-verification.
+- The drift reference and checker are generated into the local plugin bundle.
+- Unit tests cover reference validation and the staged-change policy.
+
+Remaining follow-up work:
+
+- If official Codex hook interception semantics change, add a specific backlog item before enabling runtime plugin `hooks` manifest fields.
+- Add the hook schema drift check to the formal release checklist when that checklist is introduced.
 
 ### 15. Clarify local-only protection reporting
 

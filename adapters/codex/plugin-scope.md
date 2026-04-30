@@ -18,6 +18,7 @@ The generated plugin at `plugins/ai-agent-meta-harness/` currently includes:
 
 - `.codex-plugin/plugin.json`
 - `README.md`
+- `hook-schema.md`
 - `plugin-scope.md`
 - `skills/autoresearch/SKILL.md`
 - `skills/harness-engineer/SKILL.md`
@@ -30,6 +31,7 @@ The generated plugin at `plugins/ai-agent-meta-harness/` currently includes:
 - `templates/hooks/github-actions-autoresearch-protected.yml`
 - `templates/hooks/agents-autoresearch-protection.md`
 - `scripts/check-autoresearch-protected.py`
+- `scripts/check-codex-hook-schema-drift.py`
 - `scripts/smoke-autoresearch-hooks.py`
 - `scripts/smoke-local-plugin.py`
 
@@ -65,6 +67,8 @@ Do not include:
 | AGENTS reminder snippet | `adapters/codex/templates/hooks/agents-autoresearch-protection.md` | `templates/hooks/agents-autoresearch-protection.md` | Level 1 instruction layer for target projects |
 | Runtime Codex hook config | `adapters/codex/hooks/` | `hooks/` plus manifest `hooks` field | Only after local activation smoke test passes |
 | Autoresearch checker reference | `adapters/codex/scripts/check-autoresearch-protected.py` | `scripts/check-autoresearch-protected.py` | Shared by Codex hooks, pre-commit, and CI templates |
+| Hook schema drift reference | `adapters/codex/hook-schema.md` | `hook-schema.md` | Records verified Codex hook output assumptions and official source URLs |
+| Hook schema drift checker | `adapters/codex/scripts/check-codex-hook-schema-drift.py` | `scripts/check-codex-hook-schema-drift.py` | Fails when hook-sensitive staged changes omit schema re-verification |
 | Hook smoke assertions | `adapters/codex/scripts/smoke-autoresearch-hooks.py` | `scripts/smoke-autoresearch-hooks.py` | Mechanically asserts Codex hook deny JSON shapes |
 | Local plugin artifact smoke test | `adapters/codex/scripts/smoke-local-plugin.py` | `scripts/smoke-local-plugin.py` | Verifies manifest, expected skills, protection assets, and degraded fallback warning |
 | Protected-path template | `adapters/codex/templates/autoresearch-protected.txt` | `templates/autoresearch-protected.txt` | Project bootstrap asset copied to `.harness/autoresearch-protected.txt` |

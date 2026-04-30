@@ -35,6 +35,7 @@ REQUIRED_TEMPLATE_FILES = (
 )
 REQUIRED_SCRIPT_FILES = (
     "check-autoresearch-protected.py",
+    "check-codex-hook-schema-drift.py",
     "smoke-autoresearch-hooks.py",
     "smoke-local-plugin.py",
 )
@@ -81,6 +82,7 @@ def build_mappings() -> list[Mapping]:
             PLUGIN_ROOT / ".codex-plugin" / "plugin.json",
         ),
         Mapping(SOURCE_ROOT / "README.md", PLUGIN_ROOT / "README.md"),
+        Mapping(SOURCE_ROOT / "hook-schema.md", PLUGIN_ROOT / "hook-schema.md"),
         Mapping(SOURCE_ROOT / "plugin-scope.md", PLUGIN_ROOT / "plugin-scope.md"),
     ]
     skills_root = SOURCE_ROOT / "skills"

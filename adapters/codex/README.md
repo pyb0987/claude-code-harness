@@ -61,6 +61,8 @@ The Meta-Harness paper informs the acceptance criteria for this scope, but its m
 
 The generated plugin now carries a reference checker at `scripts/check-autoresearch-protected.py`, hook JSON smoke assertions at `scripts/smoke-autoresearch-hooks.py`, a protected-path template at `templates/autoresearch-protected.txt`, and enforcement templates plus an AGENTS reminder snippet under `templates/hooks/`. These are project assets to copy during autoresearch setup; they are not advertised as active plugin runtime hooks until local activation smoke tests exist.
 
+Hook schema drift is tracked in `hook-schema.md`. Before changing Codex hook templates, checker hook output, or autoresearch hook instructions, re-check the official Codex hooks documentation and run `python3 adapters/codex/scripts/check-codex-hook-schema-drift.py`.
+
 ## Local Development Install
 
 Generate and verify the repo-local plugin bundle before artifact-level dogfooding:
@@ -68,6 +70,7 @@ Generate and verify the repo-local plugin bundle before artifact-level dogfoodin
 ```bash
 python3 scripts/sync-codex-plugin.py --write
 python3 scripts/sync-codex-plugin.py --check
+python3 adapters/codex/scripts/check-codex-hook-schema-drift.py --skip-staged-policy
 python3 adapters/codex/scripts/smoke-local-plugin.py
 ```
 

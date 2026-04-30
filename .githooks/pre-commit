@@ -3,4 +3,5 @@ set -eu
 
 python3 scripts/check-compat-mirrors.py
 python3 scripts/sync-codex-plugin.py --check
+python3 adapters/codex/scripts/check-codex-hook-schema-drift.py
 python3 adapters/codex/scripts/smoke-local-plugin.py
