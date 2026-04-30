@@ -15,10 +15,33 @@ Maintain the repo as three layers:
 | Adapters | Runtime-specific instructions, paths, hooks, install UX, examples | Keep runtime assumptions explicit and backed by smoke tests where possible |
 | Generated and compatibility surfaces | Codex plugin bundle, temporary Claude mirrors | Treat as derived artifacts; enforce drift checks in pre-commit and release checks |
 
-The Meta-Harness paper remains the acceptance frame: optimize the environment
-around the agent, preserve raw evidence, prefer additive harness changes, keep
-the evaluator boundary clean, and measure regressions with executable checks
-where possible.
+## Methodology Anchors
+
+Do not duplicate the full paper or core methodology here. Use this section as a
+maintenance compass when deciding whether a change belongs in the harness.
+
+Primary sources:
+
+- `core/methodology.md` for runtime-neutral operating principles.
+- `core/reference.md` for trace formats and analysis workflow.
+- Meta-Harness paper for the claim that harness design can dominate model
+  choice in long-running agent performance.
+- Effective harness writing guidance for practical project-instruction hygiene.
+
+Maintenance decisions should preserve these anchors:
+
+- Raw evidence beats summaries. Prefer trace files, executable logs, and
+  grep-able frontmatter over compressed retrospectives.
+- The evaluator boundary must stay clean. Agents may improve harness and search
+  code, but must not silently alter the measurement signal.
+- Additive harness changes are safer than rewriting working control flow.
+  Preserve known-good behavior unless a regression trace justifies replacing it.
+- Code-space search is the optimization surface. A small script, hook, template,
+  or check is often better than a larger instruction block.
+- Verification should be executable where possible. When it cannot be, record
+  the skipped condition and make the residual risk visible.
+- Core owns what and why; adapters own runtime-specific how. Duplication across
+  adapters is a drift risk unless runtime behavior truly differs.
 
 ## Backlog Policy
 
